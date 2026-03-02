@@ -1,13 +1,11 @@
-import { useState } from "react";
-import { mockImages } from "@/data/mockData";
+import { useState, useEffect } from "react";
 import type { ImageItem } from "@/data/mockData";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, CheckCircle2, Link } from "lucide-react";
+import { Copy, CheckCircle2, Link, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -16,21 +14,24 @@ interface Props {
   preselectedImages?: ImageItem[];
 }
 
-export function ShareModal({ open, onClose, preselectedImages }: Props) {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(
-    new Set(preselectedImages?.map((i) => i.id) ?? [])
-  );
+export function ShareModal({ open, onClose, preselectedImages = [] }: Props) {
   const [emails, setEmails] = useState("");
   const [expiryDate, setExpiryDate] = useState("2025-10-01");
   const [allowOriginal, setAllowOriginal] = useState(false);
   const [allowWeb, setAllowWeb] = useState(true);
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
-  const toggle = (id: string) => {
-    const next = new Set(selectedIds);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setSelectedIds(next);
+  // Reset removed IDs when modal opens with new images
+  useEffect(() => {
+    if (open) setRemovedIds(new Set());
+  }, [open, preselectedImages]);
+
+  const images = preselectedImages.filter((img) => !removedIds.has(img.id));
+
+  const removeImage = (id: string) => {
+    setRemovedIds((prev) => new Set(prev).add(id));
   };
 
   const handleGenerate = () => {
@@ -62,28 +63,30 @@ export function ShareModal({ open, onClose, preselectedImages }: Props) {
 
         {!generatedLink ? (
           <div className="space-y-5">
-            {/* Image selection */}
+            {/* Selected images summary */}
             <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">Select Images</Label>
-              <div className="grid grid-cols-4 gap-2 max-h-[200px] overflow-y-auto border rounded-lg p-2">
-                {mockImages.map((img) => (
-                  <button
+              <Label className="text-xs text-muted-foreground mb-2 block">
+                {images.length} image{images.length !== 1 ? "s" : ""} selected
+              </Label>
+              <div className="flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto border rounded-lg p-2">
+                {images.map((img) => (
+                  <div
                     key={img.id}
-                    onClick={() => toggle(img.id)}
-                    className={`relative rounded overflow-hidden aspect-square border-2 transition-colors ${
-                      selectedIds.has(img.id) ? "border-primary" : "border-transparent"
-                    }`}
+                    className="relative group rounded overflow-hidden h-14 w-14 flex-shrink-0 border"
                   >
                     <img src={img.src} alt={img.altText} className="w-full h-full object-cover" />
-                    {selectedIds.has(img.id) && (
-                      <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                        <CheckCircle2 className="h-5 w-5 text-primary" />
-                      </div>
-                    )}
-                  </button>
+                    <button
+                      onClick={() => removeImage(img.id)}
+                      className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+                    >
+                      <X className="h-3.5 w-3.5 text-foreground" />
+                    </button>
+                  </div>
                 ))}
+                {images.length === 0 && (
+                  <p className="text-xs text-muted-foreground py-2 px-1">No images selected</p>
+                )}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{selectedIds.size} selected</p>
             </div>
 
             <div>
@@ -119,7 +122,7 @@ export function ShareModal({ open, onClose, preselectedImages }: Props) {
 
             <DialogFooter>
               <Button variant="outline" onClick={handleClose}>Cancel</Button>
-              <Button onClick={handleGenerate} disabled={selectedIds.size === 0}>
+              <Button onClick={handleGenerate} disabled={images.length === 0}>
                 <Link className="h-4 w-4 mr-1.5" /> Generate Link
               </Button>
             </DialogFooter>
@@ -130,7 +133,7 @@ export function ShareModal({ open, onClose, preselectedImages }: Props) {
             <div>
               <p className="font-medium">Share link created!</p>
               <p className="text-sm text-muted-foreground mt-1">
-                {selectedIds.size} image{selectedIds.size > 1 ? "s" : ""} · Expires {expiryDate}
+                {images.length} image{images.length > 1 ? "s" : ""} · Expires {expiryDate}
               </p>
             </div>
             <div className="flex gap-2">

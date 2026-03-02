@@ -1,12 +1,17 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { mockImages, photographers, guides, groupIds, allTags } from "@/data/mockData";
 import type { ImageItem } from "@/data/mockData";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Search, X } from "lucide-react";
+import { Search, X, Share2, CheckSquare, Square, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageDetailModal } from "@/components/ImageDetailModal";
+import { ShareModal } from "@/components/ShareModal";
+
+const PAGE_SIZE = 48;
 
 export default function ImageLibrary() {
   const [search, setSearch] = useState("");
@@ -15,6 +20,9 @@ export default function ImageLibrary() {
   const [filterGroup, setFilterGroup] = useState<string>("all");
   const [filterTag, setFilterTag] = useState<string>("all");
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const filtered = useMemo(() => {
     return mockImages.filter((img) => {
@@ -27,6 +35,13 @@ export default function ImageLibrary() {
     });
   }, [search, filterPhotographer, filterGuide, filterGroup, filterTag]);
 
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const safePage = Math.min(page, totalPages || 1);
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  // Reset page when filters change
+  useMemo(() => { setPage(1); }, [search, filterPhotographer, filterGuide, filterGroup, filterTag]);
+
   const hasFilters = search || filterPhotographer !== "all" || filterGuide !== "all" || filterGroup !== "all" || filterTag !== "all";
 
   const clearFilters = () => {
@@ -37,12 +52,39 @@ export default function ImageLibrary() {
     setFilterTag("all");
   };
 
+  const toggleSelect = useCallback((id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAllOnPage = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      paginated.forEach((img) => next.add(img.id));
+      return next;
+    });
+  };
+
+  const deselectAll = () => setSelectedIds(new Set());
+
+  const allOnPageSelected = paginated.length > 0 && paginated.every((img) => selectedIds.has(img.id));
+
+  const selectedImages = useMemo(
+    () => mockImages.filter((img) => selectedIds.has(img.id)),
+    [selectedIds]
+  );
+
   return (
-    <div className="p-6 lg:p-8 space-y-6 animate-fade-in">
+    <div className="p-6 lg:p-8 space-y-4 animate-fade-in">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Image Library</h1>
-          <p className="text-muted-foreground mt-1">{filtered.length} of {mockImages.length} images</p>
+          <p className="text-muted-foreground mt-1">{filtered.length} images{hasFilters ? " (filtered)" : ""}</p>
         </div>
         {hasFilters && (
           <button onClick={clearFilters} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
@@ -92,37 +134,97 @@ export default function ImageLibrary() {
         </Select>
       </div>
 
-      {/* Grid */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {filtered.map((img) => (
+      {/* Selection toolbar */}
+      <div className="flex items-center justify-between border-b pb-3">
+        <div className="flex items-center gap-3">
           <button
-            key={img.id}
-            onClick={() => setSelectedImage(img)}
-            className="group rounded-lg border bg-card overflow-hidden text-left transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ring"
+            onClick={allOnPageSelected ? deselectAll : selectAllOnPage}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            <div className="aspect-[4/3] overflow-hidden">
-              <img
-                src={img.src}
-                alt={img.altText}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                loading="lazy"
-              />
-            </div>
-            <div className="p-3 space-y-2">
-              <p className="text-sm font-medium truncate">{img.title}</p>
-              <p className="text-xs text-muted-foreground">{img.photographer} · {img.tourDate}</p>
-              <div className="flex flex-wrap gap-1">
-                {img.status.map((s) => <StatusBadge key={s} status={s} />)}
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {img.tags.slice(0, 3).map((t) => (
-                  <Badge key={t} variant="secondary" className="text-[10px] px-1.5 py-0">{t}</Badge>
-                ))}
-                {img.tags.length > 3 && <span className="text-[10px] text-muted-foreground">+{img.tags.length - 3}</span>}
-              </div>
-            </div>
+            {allOnPageSelected ? (
+              <CheckSquare className="h-4 w-4 text-primary" />
+            ) : (
+              <Square className="h-4 w-4" />
+            )}
+            {allOnPageSelected ? "Deselect all" : `Select all on page`}
           </button>
-        ))}
+          {selectedIds.size > 0 && (
+            <span className="text-sm font-medium text-primary">
+              {selectedIds.size} selected
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          Page {safePage} of {totalPages}
+        </div>
+      </div>
+
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="sticky top-0 z-20 flex items-center justify-between gap-4 rounded-lg border bg-card/95 backdrop-blur-sm px-4 py-3 shadow-sm">
+          <p className="text-sm">
+            <span className="font-semibold text-foreground">{selectedIds.size}</span>{" "}
+            <span className="text-muted-foreground">image{selectedIds.size !== 1 ? "s" : ""} selected</span>
+          </p>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={deselectAll}>
+              Clear
+            </Button>
+            <Button size="sm" onClick={() => setShowShareModal(true)} className="gap-1.5">
+              <Share2 className="h-3.5 w-3.5" /> Share Selected
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Grid */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        {paginated.map((img) => {
+          const isSelected = selectedIds.has(img.id);
+          return (
+            <div
+              key={img.id}
+              className={`group relative rounded-lg border overflow-hidden bg-card transition-all hover:shadow-md ${
+                isSelected ? "ring-2 ring-primary border-primary" : ""
+              }`}
+            >
+              {/* Checkbox overlay */}
+              <div
+                className={`absolute top-2 left-2 z-10 transition-opacity ${
+                  isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                }`}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={() => toggleSelect(img.id)}
+                  className="bg-background/80 backdrop-blur-sm"
+                />
+              </div>
+
+              {/* Image – click to view detail */}
+              <button
+                onClick={() => setSelectedImage(img)}
+                className="w-full text-left focus:outline-none"
+              >
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={img.src}
+                    alt={img.altText}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-2.5 space-y-1.5">
+                  <p className="text-xs font-medium truncate">{img.title}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{img.photographer} · {img.tourDate}</p>
+                  <div className="flex flex-wrap gap-0.5">
+                    {img.status.map((s) => <StatusBadge key={s} status={s} />)}
+                  </div>
+                </div>
+              </button>
+            </div>
+          );
+        })}
       </div>
 
       {filtered.length === 0 && (
@@ -131,7 +233,59 @@ export default function ImageLibrary() {
         </div>
       )}
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={safePage <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+          </Button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+              let pageNum: number;
+              if (totalPages <= 7) {
+                pageNum = i + 1;
+              } else if (safePage <= 4) {
+                pageNum = i + 1;
+              } else if (safePage >= totalPages - 3) {
+                pageNum = totalPages - 6 + i;
+              } else {
+                pageNum = safePage - 3 + i;
+              }
+              return (
+                <Button
+                  key={pageNum}
+                  variant={pageNum === safePage ? "default" : "ghost"}
+                  size="sm"
+                  className="w-9 h-9"
+                  onClick={() => setPage(pageNum)}
+                >
+                  {pageNum}
+                </Button>
+              );
+            })}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={safePage >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Next <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      )}
+
       <ImageDetailModal image={selectedImage} onClose={() => setSelectedImage(null)} />
+      <ShareModal
+        open={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        preselectedImages={selectedImages}
+      />
     </div>
   );
 }

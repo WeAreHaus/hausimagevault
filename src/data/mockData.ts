@@ -39,157 +39,79 @@ export interface ShareLink {
   url: string;
 }
 
-export const mockImages: ImageItem[] = [
-  {
-    id: "img-001",
-    src: fjord1,
-    title: "Fjord Panorama",
-    photographer: "Erik Nordmann",
-    copyright: "© 2025 Nordic Tours AS",
-    tourDate: "2025-07-15",
-    groupId: "GRP-2025-042",
-    guide: "Ingrid Solberg",
-    description: "Panoramic view of the Geirangerfjord with traditional red cabin on the shore.",
-    altText: "Red cabin on fjord shore with snow-capped mountains",
-    tags: ["fjord", "landscape", "cabin", "summer"],
-    status: ["archived", "published"],
-    width: 6000,
-    height: 4000,
-    fileSize: "24.3 MB",
-    uploadedAt: "2025-07-16",
-  },
-  {
-    id: "img-002",
-    src: aurora1,
-    title: "Northern Lights Display",
-    photographer: "Sven Larsen",
-    copyright: "© 2025 Nordic Tours AS",
-    tourDate: "2025-01-22",
-    groupId: "GRP-2025-008",
-    guide: "Olav Hansen",
-    description: "Spectacular aurora borealis over the Arctic tundra near Tromsø.",
-    altText: "Vivid green and purple northern lights over snowy landscape",
-    tags: ["aurora", "winter", "arctic", "night"],
-    status: ["archived", "shared"],
-    width: 6000,
-    height: 4000,
-    fileSize: "18.7 MB",
-    uploadedAt: "2025-01-23",
-  },
-  {
-    id: "img-003",
-    src: church1,
-    title: "Stave Church in Autumn",
-    photographer: "Anna Bjørnstad",
-    copyright: "© 2025 Nordic Tours AS",
-    tourDate: "2025-09-28",
-    groupId: "GRP-2025-061",
-    guide: "Ingrid Solberg",
-    description: "Historic wooden stave church surrounded by golden autumn foliage.",
-    altText: "Dark wooden stave church with autumn trees",
-    tags: ["church", "architecture", "autumn", "heritage"],
-    status: ["archived"],
-    width: 4000,
-    height: 6000,
-    fileSize: "21.1 MB",
-    uploadedAt: "2025-09-29",
-  },
-  {
-    id: "img-004",
-    src: hiking1,
-    title: "Mountain Trail Group",
-    photographer: "Erik Nordmann",
-    copyright: "© 2025 Nordic Tours AS",
-    tourDate: "2025-08-05",
-    groupId: "GRP-2025-048",
-    guide: "Magnus Vik",
-    description: "Tour group hiking along a panoramic mountain ridge trail.",
-    altText: "Hikers on mountain trail with valley panorama",
-    tags: ["hiking", "group", "mountain", "summer", "activity"],
-    status: ["archived", "shared", "published"],
-    width: 6000,
-    height: 4000,
-    fileSize: "19.8 MB",
-    uploadedAt: "2025-08-06",
-  },
-  {
-    id: "img-005",
-    src: whale1,
-    title: "Whale Watching Moment",
-    photographer: "Sven Larsen",
-    copyright: "© 2025 Nordic Tours AS",
-    tourDate: "2025-06-12",
-    groupId: "GRP-2025-035",
-    guide: "Olav Hansen",
-    description: "Humpback whale tail above the calm Nordic waters.",
-    altText: "Whale tail breaching calm sea with misty mountains",
-    tags: ["whale", "wildlife", "sea", "summer"],
-    status: ["archived"],
-    width: 6000,
-    height: 4000,
-    fileSize: "15.2 MB",
-    uploadedAt: "2025-06-13",
-  },
-  {
-    id: "img-006",
-    src: village1,
-    title: "Lofoten Fishing Village",
-    photographer: "Anna Bjørnstad",
-    copyright: "© 2025 Nordic Tours AS",
-    tourDate: "2025-07-20",
-    groupId: "GRP-2025-042",
-    guide: "Ingrid Solberg",
-    description: "Colorful traditional fishing village in the Lofoten Islands.",
-    altText: "Colorful wooden houses along waterfront with boats",
-    tags: ["village", "lofoten", "colorful", "summer", "architecture"],
-    status: ["archived", "published"],
-    width: 6000,
-    height: 4000,
-    fileSize: "22.5 MB",
-    uploadedAt: "2025-07-21",
-  },
-  {
-    id: "img-007",
-    src: midnightSun1,
-    title: "Midnight Sun Seascape",
-    photographer: "Erik Nordmann",
-    copyright: "© 2025 Nordic Tours AS",
-    tourDate: "2025-06-21",
-    groupId: "GRP-2025-038",
-    guide: "Magnus Vik",
-    description: "The midnight sun casting golden light over the Norwegian Sea.",
-    altText: "Dramatic sunset over calm ocean with clouds",
-    tags: ["midnight sun", "sea", "sunset", "summer"],
-    status: ["archived", "shared"],
-    width: 6000,
-    height: 4000,
-    fileSize: "16.9 MB",
-    uploadedAt: "2025-06-22",
-  },
-  {
-    id: "img-008",
-    src: glacier1,
-    title: "Blue Ice Cave",
-    photographer: "Sven Larsen",
-    copyright: "© 2025 Nordic Tours AS",
-    tourDate: "2025-03-10",
-    groupId: "GRP-2025-018",
-    guide: "Olav Hansen",
-    description: "Interior of a glacier ice cave with ethereal blue light.",
-    altText: "Blue ice cave interior with turquoise light",
-    tags: ["glacier", "ice", "winter", "adventure", "cave"],
-    status: ["archived"],
-    width: 4000,
-    height: 6000,
-    fileSize: "20.4 MB",
-    uploadedAt: "2025-03-11",
-  },
+const baseSources = [fjord1, aurora1, church1, hiking1, whale1, village1, midnightSun1, glacier1];
+
+const titles = [
+  "Fjord Panorama", "Northern Lights Display", "Stave Church in Autumn", "Mountain Trail Group",
+  "Whale Watching Moment", "Lofoten Fishing Village", "Midnight Sun Seascape", "Blue Ice Cave",
+  "Coastal Cliff Walk", "Reindeer Herd", "Glacier Hike", "Bergen Harbour", "Arctic Fox Close-up",
+  "Tundra Wildflowers", "Snowmobile Adventure", "Viking Museum Visit", "Waterfall Rappelling",
+  "Fjord Kayaking", "Northern Village Dawn", "Ice Hotel Interior",
 ];
+
+const photographerList = ["Erik Nordmann", "Sven Larsen", "Anna Bjørnstad", "Marte Ødegaard", "Lars Kjeldsen"];
+const guideList = ["Ingrid Solberg", "Olav Hansen", "Magnus Vik", "Frida Holm", "Knut Berg"];
+const tagPool = [
+  "fjord", "landscape", "cabin", "summer", "aurora", "winter", "arctic", "night", "church",
+  "architecture", "autumn", "heritage", "hiking", "group", "mountain", "activity", "whale",
+  "wildlife", "sea", "village", "lofoten", "colorful", "midnight sun", "sunset", "glacier",
+  "ice", "adventure", "cave", "coast", "reindeer", "tundra", "flowers", "snowmobile",
+  "museum", "waterfall", "kayaking", "dawn", "hotel", "fox", "harbour",
+];
+
+const statusOptions: ImageStatus[][] = [
+  ["archived"],
+  ["archived", "shared"],
+  ["archived", "published"],
+  ["archived", "shared", "published"],
+];
+
+function generateMockImages(count: number): ImageItem[] {
+  const images: ImageItem[] = [];
+  for (let i = 0; i < count; i++) {
+    const src = baseSources[i % baseSources.length];
+    const title = titles[i % titles.length] + (i >= titles.length ? ` #${Math.floor(i / titles.length) + 1}` : "");
+    const photographer = photographerList[i % photographerList.length];
+    const guide = guideList[i % guideList.length];
+    const month = (i % 12) + 1;
+    const day = (i % 28) + 1;
+    const tourDate = `2025-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const groupNum = String(i + 1).padStart(3, "0");
+
+    // Pick 2-5 random tags
+    const shuffled = [...tagPool].sort(() => 0.5 - Math.random());
+    const tags = shuffled.slice(0, 2 + (i % 4));
+
+    const isPortrait = i % 5 === 2;
+
+    images.push({
+      id: `img-${String(i + 1).padStart(4, "0")}`,
+      src,
+      title,
+      photographer,
+      copyright: "© 2025 Nordic Tours AS",
+      tourDate,
+      groupId: `GRP-2025-${groupNum}`,
+      guide,
+      description: `Tour photo ${i + 1}: ${title.toLowerCase()} captured on a guided Nordic tour.`,
+      altText: `${title} – scenic Nordic tour photography`,
+      tags,
+      status: statusOptions[i % statusOptions.length],
+      width: isPortrait ? 4000 : 6000,
+      height: isPortrait ? 6000 : 4000,
+      fileSize: `${(14 + (i % 12)).toFixed(1)} MB`,
+      uploadedAt: tourDate,
+    });
+  }
+  return images;
+}
+
+export const mockImages: ImageItem[] = generateMockImages(240);
 
 export const mockShareLinks: ShareLink[] = [
   {
     id: "share-001",
-    imageIds: ["img-002", "img-007"],
+    imageIds: ["img-0002", "img-0007"],
     recipientEmails: ["customer@example.com"],
     expiresAt: "2025-08-15",
     createdAt: "2025-07-25",
@@ -199,7 +121,7 @@ export const mockShareLinks: ShareLink[] = [
   },
   {
     id: "share-002",
-    imageIds: ["img-004"],
+    imageIds: ["img-0004"],
     recipientEmails: ["group48@example.com", "travel@blog.com"],
     expiresAt: "2025-09-01",
     createdAt: "2025-08-06",
@@ -212,4 +134,4 @@ export const mockShareLinks: ShareLink[] = [
 export const photographers = [...new Set(mockImages.map((i) => i.photographer))];
 export const guides = [...new Set(mockImages.map((i) => i.guide))];
 export const groupIds = [...new Set(mockImages.map((i) => i.groupId))];
-export const allTags = [...new Set(mockImages.flatMap((i) => i.tags))];
+export const allTags = [...new Set(mockImages.flatMap((i) => i.tags))].sort();
