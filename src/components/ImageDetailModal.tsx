@@ -1,0 +1,146 @@
+import { useState } from "react";
+import type { ImageItem } from "@/data/mockData";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Sparkles, Share2, Globe, Copy, CheckCircle2 } from "lucide-react";
+import { ShareModal } from "@/components/ShareModal";
+import { PublishModal } from "@/components/PublishModal";
+import { toast } from "sonner";
+
+interface Props {
+  image: ImageItem | null;
+  onClose: () => void;
+}
+
+export function ImageDetailModal({ image, onClose }: Props) {
+  const [altText, setAltText] = useState("");
+  const [showShare, setShowShare] = useState(false);
+  const [showPublish, setShowPublish] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  if (!image) return null;
+
+  const currentAlt = altText || image.altText;
+
+  const handleGenerateAlt = () => {
+    setAiLoading(true);
+    setTimeout(() => {
+      setAltText(
+        `A breathtaking ${image.tags[0]} scene captured during a guided tour in Norway. ${image.description}`
+      );
+      setAiLoading(false);
+      toast.success("AI alt text generated");
+    }, 1500);
+  };
+
+  return (
+    <>
+      <Dialog open={!!image} onOpenChange={() => onClose()}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{image.title}</DialogTitle>
+          </DialogHeader>
+
+          <div className="grid gap-6 md:grid-cols-[1fr_1fr]">
+            {/* Preview */}
+            <div className="space-y-3">
+              <div className="rounded-lg overflow-hidden border">
+                <img src={image.src} alt={currentAlt} className="w-full object-contain max-h-[400px]" />
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {image.status.map((s) => <StatusBadge key={s} status={s} />)}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {image.tags.map((t) => (
+                  <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
+                ))}
+              </div>
+              <div className="text-xs text-muted-foreground space-y-0.5">
+                <p>{image.width} × {image.height}px · {image.fileSize}</p>
+                <p>Uploaded {image.uploadedAt}</p>
+              </div>
+            </div>
+
+            {/* Metadata */}
+            <div className="space-y-4">
+              <div className="grid gap-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Photographer</Label>
+                  <Input value={image.photographer} readOnly className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Copyright</Label>
+                  <Input value={image.copyright} readOnly className="mt-1" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Tour Date</Label>
+                    <Input value={image.tourDate} readOnly className="mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Group ID</Label>
+                    <Input value={image.groupId} readOnly className="mt-1" />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Guide</Label>
+                  <Input value={image.guide} readOnly className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Description</Label>
+                  <Textarea value={image.description} readOnly className="mt-1 resize-none" rows={2} />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-muted-foreground">Alt Text</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleGenerateAlt}
+                      disabled={aiLoading}
+                      className="text-xs gap-1 h-7"
+                    >
+                      <Sparkles className="h-3 w-3" />
+                      {aiLoading ? "Generating…" : "Generate AI Alt Text"}
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={currentAlt}
+                    onChange={(e) => setAltText(e.target.value)}
+                    className="mt-1 resize-none"
+                    rows={2}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button onClick={() => setShowShare(true)} variant="outline" className="flex-1 gap-1.5">
+                  <Share2 className="h-4 w-4" /> Create Share Link
+                </Button>
+                <Button onClick={() => setShowPublish(true)} className="flex-1 gap-1.5">
+                  <Globe className="h-4 w-4" /> Publish to Website
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <ShareModal
+        open={showShare}
+        onClose={() => setShowShare(false)}
+        preselectedImages={[image]}
+      />
+      <PublishModal
+        open={showPublish}
+        onClose={() => setShowPublish(false)}
+        image={image}
+      />
+    </>
+  );
+}
