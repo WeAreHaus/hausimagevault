@@ -1,4 +1,4 @@
-import { LayoutDashboard, Images, Share2, Globe, Camera } from "lucide-react";
+import { LayoutDashboard, Images, Share2, FolderOpen, Palette, Camera } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -16,7 +16,9 @@ import {
 const items = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Image Library", url: "/library", icon: Images },
+  { title: "Buckets", url: "/buckets", icon: FolderOpen },
   { title: "Share Manager", url: "/shares", icon: Share2 },
+  { title: "Brand Assets", url: "/brand", icon: Palette },
 ];
 
 export function AppSidebar() {

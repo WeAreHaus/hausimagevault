@@ -7,6 +7,8 @@ import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import ImageLibrary from "@/pages/ImageLibrary";
 import ShareManager from "@/pages/ShareManager";
+import Buckets from "@/pages/Buckets";
+import BrandAssets from "@/pages/BrandAssets";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,7 +23,9 @@ const App = () => (
           <Route element={<AppLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/library" element={<ImageLibrary />} />
+            <Route path="/buckets" element={<Buckets />} />
             <Route path="/shares" element={<ShareManager />} />
+            <Route path="/brand" element={<BrandAssets />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

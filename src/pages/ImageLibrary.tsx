@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Search, X, Share2, CheckSquare, Square, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, X, Share2, CheckSquare, Square, ChevronLeft, ChevronRight, FolderPlus, Globe, AlertTriangle } from "lucide-react";
 import { ImageDetailModal } from "@/components/ImageDetailModal";
 import { ShareModal } from "@/components/ShareModal";
+import { AddToBucketModal } from "@/components/AddToBucketModal";
 
 const PAGE_SIZE = 48;
 
@@ -19,10 +20,12 @@ export default function ImageLibrary() {
   const [filterGuide, setFilterGuide] = useState<string>("all");
   const [filterGroup, setFilterGroup] = useState<string>("all");
   const [filterTag, setFilterTag] = useState<string>("all");
+  const [filterMeta, setFilterMeta] = useState<string>("all");
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showBucketModal, setShowBucketModal] = useState(false);
 
   const filtered = useMemo(() => {
     return mockImages.filter((img) => {
@@ -31,18 +34,23 @@ export default function ImageLibrary() {
       if (filterGuide !== "all" && img.guide !== filterGuide) return false;
       if (filterGroup !== "all" && img.groupId !== filterGroup) return false;
       if (filterTag !== "all" && !img.tags.includes(filterTag)) return false;
+      if (filterMeta === "missing-desc" && img.description.trim() !== "") return false;
+      if (filterMeta === "missing-alt" && img.altText.trim() !== "") return false;
+      if (filterMeta === "missing-any" && img.description.trim() !== "" && img.altText.trim() !== "") return false;
+      if (filterMeta === "wp-published" && !img.wpPublishedAt) return false;
+      if (filterMeta === "wp-dirty" && !img.wpSyncDirty) return false;
       return true;
     });
-  }, [search, filterPhotographer, filterGuide, filterGroup, filterTag]);
+  }, [search, filterPhotographer, filterGuide, filterGroup, filterTag, filterMeta]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const safePage = Math.min(page, totalPages || 1);
   const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   // Reset page when filters change
-  useMemo(() => { setPage(1); }, [search, filterPhotographer, filterGuide, filterGroup, filterTag]);
+  useMemo(() => { setPage(1); }, [search, filterPhotographer, filterGuide, filterGroup, filterTag, filterMeta]);
 
-  const hasFilters = search || filterPhotographer !== "all" || filterGuide !== "all" || filterGroup !== "all" || filterTag !== "all";
+  const hasFilters = search || filterPhotographer !== "all" || filterGuide !== "all" || filterGroup !== "all" || filterTag !== "all" || filterMeta !== "all";
 
   const clearFilters = () => {
     setSearch("");
@@ -50,6 +58,7 @@ export default function ImageLibrary() {
     setFilterGuide("all");
     setFilterGroup("all");
     setFilterTag("all");
+    setFilterMeta("all");
   };
 
   const toggleSelect = useCallback((id: string, e?: React.MouseEvent) => {
@@ -132,6 +141,17 @@ export default function ImageLibrary() {
             {allTags.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={filterMeta} onValueChange={setFilterMeta}>
+          <SelectTrigger className="w-[180px]"><SelectValue placeholder="Metadata" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Images</SelectItem>
+            <SelectItem value="missing-any">Missing any metadata</SelectItem>
+            <SelectItem value="missing-desc">Missing description</SelectItem>
+            <SelectItem value="missing-alt">Missing alt text</SelectItem>
+            <SelectItem value="wp-published">Published to WP</SelectItem>
+            <SelectItem value="wp-dirty">WP out of sync</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Selection toolbar */}
@@ -170,6 +190,9 @@ export default function ImageLibrary() {
             <Button variant="outline" size="sm" onClick={deselectAll}>
               Clear
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setShowBucketModal(true)} className="gap-1.5">
+              <FolderPlus className="h-3.5 w-3.5" /> Add to Bucket
+            </Button>
             <Button size="sm" onClick={() => setShowShareModal(true)} className="gap-1.5">
               <Share2 className="h-3.5 w-3.5" /> Share Selected
             </Button>
@@ -181,6 +204,7 @@ export default function ImageLibrary() {
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
         {paginated.map((img) => {
           const isSelected = selectedIds.has(img.id);
+          const missingMeta = !img.description.trim() || !img.altText.trim();
           return (
             <div
               key={img.id}
@@ -199,6 +223,25 @@ export default function ImageLibrary() {
                   onCheckedChange={() => toggleSelect(img.id)}
                   className="bg-background/80 backdrop-blur-sm"
                 />
+              </div>
+
+              {/* WP & metadata indicators */}
+              <div className="absolute top-2 right-2 z-10 flex gap-1">
+                {missingMeta && (
+                  <div className="h-5 w-5 rounded-full bg-warning/90 flex items-center justify-center" title="Missing metadata">
+                    <AlertTriangle className="h-3 w-3 text-warning-foreground" />
+                  </div>
+                )}
+                {img.wpPublishedAt && (
+                  <div
+                    className={`h-5 w-5 rounded-full flex items-center justify-center ${
+                      img.wpSyncDirty ? "bg-destructive/90" : "bg-success/90"
+                    }`}
+                    title={img.wpSyncDirty ? "WordPress out of sync" : "Published to WordPress"}
+                  >
+                    <Globe className="h-3 w-3 text-primary-foreground" />
+                  </div>
+                )}
               </div>
 
               {/* Image – click to view detail */}
@@ -285,6 +328,11 @@ export default function ImageLibrary() {
         open={showShareModal}
         onClose={() => setShowShareModal(false)}
         preselectedImages={selectedImages}
+      />
+      <AddToBucketModal
+        open={showBucketModal}
+        onClose={() => setShowBucketModal(false)}
+        imageIds={[...selectedIds]}
       />
     </div>
   );
