@@ -26,6 +26,8 @@ export interface ImageItem {
   height: number;
   fileSize: string;
   uploadedAt: string;
+  wpPublishedAt?: string;
+  wpSyncDirty?: boolean;
 }
 
 export interface ShareLink {
@@ -101,6 +103,12 @@ function generateMockImages(count: number): ImageItem[] {
       height: isPortrait ? 6000 : 4000,
       fileSize: `${(14 + (i % 12)).toFixed(1)} MB`,
       uploadedAt: tourDate,
+      // Some images have been published to WP
+      wpPublishedAt: i % 4 === 3 ? tourDate : undefined,
+      // Some published images have dirty metadata (edited after publish)
+      wpSyncDirty: i % 4 === 3 && i % 8 === 3,
+      // Some images intentionally have empty descriptions/alt text for testing missing metadata filter
+      ...(i % 7 === 0 ? { description: "", altText: "" } : {}),
     });
   }
   return images;
