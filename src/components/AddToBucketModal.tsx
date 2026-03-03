@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useBuckets, createBucket, addImagesToBucket } from "@/stores/bucketStore";
+import { useBuckets, createBucket, addImagesToBucket, type AssetDeliveryOptions } from "@/stores/bucketStore";
 import { FolderPlus, Plus, Check } from "lucide-react";
 import { toast } from "sonner";
 import { AssetFormatPickerModal, type AssetFormatSelection } from "@/components/AssetFormatPickerModal";
@@ -24,8 +24,8 @@ export function AddToBucketModal({ open, onClose, imageIds }: Props) {
 
   const hasVectorAssets = imageIds.some((id) => id.startsWith("logo-"));
 
-  const doAdd = (bucketId: string) => {
-    addImagesToBucket(bucketId, imageIds);
+  const doAdd = (bucketId: string, options?: Record<string, AssetDeliveryOptions>) => {
+    addImagesToBucket(bucketId, imageIds, options);
     setAddedTo((prev) => new Set(prev).add(bucketId));
     const bucket = buckets.find((b) => b.id === bucketId);
     toast.success(`Added ${imageIds.length} asset${imageIds.length > 1 ? "s" : ""} to "${bucket?.name}"`);
@@ -43,7 +43,17 @@ export function AddToBucketModal({ open, onClose, imageIds }: Props) {
 
   const handleFormatConfirm = (selection: AssetFormatSelection) => {
     if (pendingBucketId) {
-      doAdd(pendingBucketId);
+      // Build options map for all logo IDs
+      const logoIds = imageIds.filter((id) => id.startsWith("logo-"));
+      const options: Record<string, AssetDeliveryOptions> = {};
+      logoIds.forEach((id) => {
+        options[id] = {
+          includeOriginal: selection.includeOriginal,
+          pixelFormats: selection.pixelFormats,
+          pixelSizes: selection.pixelSizes,
+        };
+      });
+      doAdd(pendingBucketId, options);
       const summary: string[] = [];
       if (selection.includeOriginal) summary.push("original vector");
       if (selection.pixelFormats.length > 0) {
