@@ -13,6 +13,7 @@ import BrandAssets from "@/pages/BrandAssets";
 import UploadFlow from "@/pages/UploadFlow";
 import NotFound from "./pages/NotFound";
 
+
 const queryClient = new QueryClient();
 
 const App = () => (
