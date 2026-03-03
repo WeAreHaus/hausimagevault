@@ -63,6 +63,14 @@ export function updateLogoName(id: string, name: string) {
   emit();
 }
 
+export function getLogoById(id: string): LogoAsset | undefined {
+  return logos.find((l) => l.id === id);
+}
+
+export function getLogosByIds(ids: string[]): LogoAsset[] {
+  return ids.map((id) => logos.find((l) => l.id === id)).filter(Boolean) as LogoAsset[];
+}
+
 export function useLogos(): LogoAsset[] {
   return useSyncExternalStore(
     (cb) => {
