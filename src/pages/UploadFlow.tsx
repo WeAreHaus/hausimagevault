@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { MetadataEntryForm, countFilledFields, totalFields, type UploadedFile } from "@/components/MetadataEntryForm";
 import { Upload, CheckCircle2, ArrowLeft, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { imageStore } from "@/stores/imageStore";
 
 // Mock images for simulated upload
 import fjord1 from "@/assets/mock/fjord-1.jpg";
@@ -76,6 +77,7 @@ export default function UploadFlow() {
   };
 
   const handleFinalize = () => {
+    imageStore.addImages(files);
     setStep("done");
     toast.success(`${files.length} images uploaded`);
   };

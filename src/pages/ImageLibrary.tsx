@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback } from "react";
-import { mockImages, photographers, guides, groupIds, allTags } from "@/data/mockData";
+import { useState, useMemo, useCallback, useSyncExternalStore } from "react";
 import type { ImageItem } from "@/data/mockData";
+import { imageStore } from "@/stores/imageStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,8 +16,12 @@ import { useNavigate } from "react-router-dom";
 
 const PAGE_SIZE = 48;
 
+type SortOption = "newest" | "oldest" | "title-az" | "title-za";
+
 export default function ImageLibrary() {
   const navigate = useNavigate();
+  const allImages = useSyncExternalStore(imageStore.subscribe, imageStore.getSnapshot);
+
   const [search, setSearch] = useState("");
   const [filterPhotographer, setFilterPhotographer] = useState<string>("all");
   const [filterGuide, setFilterGuide] = useState<string>("all");
@@ -25,6 +29,7 @@ export default function ImageLibrary() {
   const [filterTag, setFilterTag] = useState<string>("all");
   const [filterMeta, setFilterMeta] = useState<string>("all");
   const [filterMedia, setFilterMedia] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
@@ -32,8 +37,14 @@ export default function ImageLibrary() {
   const [showBucketModal, setShowBucketModal] = useState(false);
   const [showBatchPublish, setShowBatchPublish] = useState(false);
 
+  // Derive filter options from current data
+  const photographers = useMemo(() => [...new Set(allImages.map((i) => i.photographer))].filter(Boolean).sort(), [allImages]);
+  const guides = useMemo(() => [...new Set(allImages.map((i) => i.guide))].filter(Boolean).sort(), [allImages]);
+  const groupIds = useMemo(() => [...new Set(allImages.map((i) => i.groupId))].filter(Boolean).sort(), [allImages]);
+  const allTags = useMemo(() => [...new Set(allImages.flatMap((i) => i.tags))].sort(), [allImages]);
+
   const filtered = useMemo(() => {
-    return mockImages.filter((img) => {
+    let result = allImages.filter((img) => {
       if (search && !img.title.toLowerCase().includes(search.toLowerCase()) && !img.tags.some((t) => t.includes(search.toLowerCase()))) return false;
       if (filterPhotographer !== "all" && img.photographer !== filterPhotographer) return false;
       if (filterGuide !== "all" && img.guide !== filterGuide) return false;
@@ -47,13 +58,26 @@ export default function ImageLibrary() {
       if (filterMeta === "wp-dirty" && !img.wpSyncDirty) return false;
       return true;
     });
-  }, [search, filterPhotographer, filterGuide, filterGroup, filterTag, filterMeta, filterMedia]);
+
+    // Sort
+    result = [...result].sort((a, b) => {
+      switch (sortBy) {
+        case "newest": return b.uploadedAt.localeCompare(a.uploadedAt);
+        case "oldest": return a.uploadedAt.localeCompare(b.uploadedAt);
+        case "title-az": return a.title.localeCompare(b.title);
+        case "title-za": return b.title.localeCompare(a.title);
+        default: return 0;
+      }
+    });
+
+    return result;
+  }, [allImages, search, filterPhotographer, filterGuide, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const safePage = Math.min(page, totalPages || 1);
   const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  useMemo(() => { setPage(1); }, [search, filterPhotographer, filterGuide, filterGroup, filterTag, filterMeta, filterMedia]);
+  useMemo(() => { setPage(1); }, [search, filterPhotographer, filterGuide, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
 
   const hasFilters = search || filterPhotographer !== "all" || filterGuide !== "all" || filterGroup !== "all" || filterTag !== "all" || filterMeta !== "all" || filterMedia !== "all";
 
@@ -89,8 +113,8 @@ export default function ImageLibrary() {
   const allOnPageSelected = paginated.length > 0 && paginated.every((img) => selectedIds.has(img.id));
 
   const selectedImages = useMemo(
-    () => mockImages.filter((img) => selectedIds.has(img.id)),
-    [selectedIds]
+    () => allImages.filter((img) => selectedIds.has(img.id)),
+    [selectedIds, allImages]
   );
 
   return (
@@ -119,6 +143,15 @@ export default function ImageLibrary() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Sort" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest first</SelectItem>
+            <SelectItem value="oldest">Oldest first</SelectItem>
+            <SelectItem value="title-az">Title A–Z</SelectItem>
+            <SelectItem value="title-za">Title Z–A</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={filterMedia} onValueChange={setFilterMedia}>
           <SelectTrigger className="w-[130px]"><SelectValue placeholder="Type" /></SelectTrigger>
           <SelectContent>
