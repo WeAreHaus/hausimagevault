@@ -4,15 +4,20 @@ import type { ImageItem } from "@/data/mockData";
 import { imageStore } from "@/stores/imageStore";
 import { useBuckets, deleteBucket, removeImageFromBucket } from "@/stores/bucketStore";
 import type { Bucket } from "@/stores/bucketStore";
+import { usePublicPages, deletePublicPage, updatePublicPage } from "@/stores/publicPageStore";
+import type { PublicPage } from "@/stores/publicPageStore";
 import { getLogosByIds, type LogoAsset } from "@/stores/logoStore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Share2, Plus, Download, Globe, FolderOpen, Pencil, Trash2, X, ChevronDown, ChevronUp, Eye } from "lucide-react";
+import { Share2, Plus, Download, Globe, FolderOpen, Pencil, Trash2, X, ChevronDown, ChevronUp, Eye, ExternalLink, Link2 } from "lucide-react";
 import { ShareModal } from "@/components/ShareModal";
 import { BucketEditModal } from "@/components/BucketEditModal";
 import { BucketDetailModal } from "@/components/BucketDetailModal";
+import { PublicPageEditModal } from "@/components/PublicPageEditModal";
+import { PublicPageDetailModal } from "@/components/PublicPageDetailModal";
 import { toast } from "sonner";
 
 function logoToImageItem(logo: LogoAsset): ImageItem {
@@ -48,11 +53,15 @@ function resolveAssets(ids: string[]): ImageItem[] {
 
 export default function ShareManager() {
   const buckets = useBuckets();
+  const publicPages = usePublicPages();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [editBucket, setEditBucket] = useState<Bucket | null>(null);
   const [createMode, setCreateMode] = useState(false);
   const [shareBucket, setShareBucket] = useState<Bucket | null>(null);
   const [detailBucket, setDetailBucket] = useState<Bucket | null>(null);
+  const [editPage, setEditPage] = useState<PublicPage | null>(null);
+  const [createPageMode, setCreatePageMode] = useState(false);
+  const [detailPage, setDetailPage] = useState<PublicPage | null>(null);
 
   const getImages = (ids: string[]) => resolveAssets(ids);
 
@@ -72,6 +81,7 @@ export default function ShareManager() {
         <TabsList>
           <TabsTrigger value="buckets">Buckets</TabsTrigger>
           <TabsTrigger value="quick-shares">Quick Shares</TabsTrigger>
+          <TabsTrigger value="public-access">Public Access</TabsTrigger>
         </TabsList>
 
         {/* Buckets Tab */}
@@ -219,6 +229,107 @@ export default function ShareManager() {
               </Card>
             );
           })}
+        </TabsContent>
+
+        {/* Public Access Tab */}
+        <TabsContent value="public-access" className="space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <p className="text-sm text-muted-foreground">
+              Create public pages to share images and brand assets via an open link. Perfect for media kits and press pages.
+            </p>
+            <Button onClick={() => setCreatePageMode(true)} className="gap-1.5 flex-shrink-0">
+              <Plus className="h-4 w-4" /> New Page
+            </Button>
+          </div>
+
+          {publicPages.length === 0 && (
+            <div className="text-center py-16 text-muted-foreground">
+              <Globe className="h-10 w-10 mx-auto mb-3 opacity-40" />
+              <p>No public pages yet. Create one to share assets publicly.</p>
+            </div>
+          )}
+
+          {publicPages.map((page) => {
+            const assets = resolveAssets(page.imageIds);
+            return (
+              <Card key={page.id}>
+                <CardContent className="p-5 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-primary flex-shrink-0" />
+                        <h3 className="font-semibold truncate cursor-pointer hover:text-primary transition-colors" onClick={() => setDetailPage(page)}>{page.title}</h3>
+                        <Badge variant="secondary" className="text-xs font-normal flex-shrink-0">
+                          {page.imageIds.length} assets
+                        </Badge>
+                        <Badge variant={page.published ? "default" : "outline"} className="text-xs font-normal flex-shrink-0">
+                          {page.published ? "Published" : "Draft"}
+                        </Badge>
+                      </div>
+                      {page.description && (
+                        <p className="text-sm text-muted-foreground mt-1">{page.description}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-0.5 font-mono">/public/{page.slug}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Switch
+                        checked={page.published}
+                        onCheckedChange={(checked) => {
+                          updatePublicPage(page.id, { published: checked });
+                          toast.success(checked ? "Page published" : "Page unpublished");
+                        }}
+                      />
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailPage(page)}>
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditPage(page)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      {page.published && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                          <a href={`/public/${page.slug}`} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`${window.location.origin}/public/${page.slug}`);
+                          toast.success("Link copied");
+                        }}
+                      >
+                        <Link2 className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { deletePublicPage(page.id); toast.success("Page deleted"); }}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {assets.length > 0 && (
+                    <div className="flex gap-1.5 overflow-hidden">
+                      {assets.slice(0, 6).map((img) => (
+                        <div key={img.id} className="h-14 w-14 rounded border overflow-hidden flex-shrink-0">
+                          <img src={img.src} alt={img.altText} className="h-full w-full object-cover" />
+                        </div>
+                      ))}
+                      {assets.length > 6 && (
+                        <div className="h-14 w-14 rounded border flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">
+                          +{assets.length - 6}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+
+          <PublicPageEditModal page={editPage} isOpen={!!editPage || createPageMode} onClose={() => { setEditPage(null); setCreatePageMode(false); }} />
+          <PublicPageDetailModal page={detailPage} open={!!detailPage} onClose={() => setDetailPage(null)} />
         </TabsContent>
       </Tabs>
     </div>
