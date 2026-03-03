@@ -12,10 +12,10 @@ import { BucketEditModal } from "@/components/BucketEditModal";
 import { toast } from "sonner";
 
 export default function ShareManager() {
-  const [showCreate, setShowCreate] = useState(false);
   const buckets = useBuckets();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [editBucket, setEditBucket] = useState<Bucket | null>(null);
+  const [createMode, setCreateMode] = useState(false);
   const [shareBucket, setShareBucket] = useState<Bucket | null>(null);
 
   const getImages = (ids: string[]) => mockImages.filter((i) => ids.includes(i.id));
@@ -40,10 +40,19 @@ export default function ShareManager() {
 
         {/* Buckets Tab */}
         <TabsContent value="buckets" className="space-y-4">
+          <div className="flex items-start justify-between gap-4">
+            <p className="text-sm text-muted-foreground">
+              Buckets are reusable collections of images that you can organize, update, and share multiple times.
+            </p>
+            <Button onClick={() => setCreateMode(true)} className="gap-1.5 flex-shrink-0">
+              <Plus className="h-4 w-4" /> New Bucket
+            </Button>
+          </div>
+
           {buckets.length === 0 && (
             <div className="text-center py-16 text-muted-foreground">
               <FolderOpen className="h-10 w-10 mx-auto mb-3 opacity-40" />
-              <p>No buckets yet. Select images in the library and add them to a bucket.</p>
+              <p>No buckets yet. Create one or select images in the library and add them to a bucket.</p>
             </div>
           )}
 
@@ -114,7 +123,7 @@ export default function ShareManager() {
             );
           })}
 
-          <BucketEditModal bucket={editBucket} onClose={() => setEditBucket(null)} />
+          <BucketEditModal bucket={editBucket} isOpen={!!editBucket || createMode} onClose={() => { setEditBucket(null); setCreateMode(false); }} />
           {shareBucket && (
             <ShareModal
               open={!!shareBucket}
@@ -126,11 +135,9 @@ export default function ShareManager() {
 
         {/* Quick Shares Tab */}
         <TabsContent value="quick-shares" className="space-y-4">
-          <div className="flex justify-end">
-            <Button onClick={() => setShowCreate(true)} className="gap-1.5">
-              <Plus className="h-4 w-4" /> New Share Link
-            </Button>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Quick Shares are one-time share links created directly from the image library. They are not saved as collections.
+          </p>
 
           {mockShareLinks.map((link) => {
             const images = getImages(link.imageIds);
@@ -172,8 +179,6 @@ export default function ShareManager() {
               </Card>
             );
           })}
-
-          <ShareModal open={showCreate} onClose={() => setShowCreate(false)} />
         </TabsContent>
       </Tabs>
     </div>
