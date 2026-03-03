@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Sparkles, Share2, Globe, Copy, CheckCircle2 } from "lucide-react";
+import { Sparkles, Share2, Globe, Play } from "lucide-react";
 import { ShareModal } from "@/components/ShareModal";
 import { PublishModal } from "@/components/PublishModal";
 import { toast } from "sonner";
@@ -26,6 +26,7 @@ export function ImageDetailModal({ image, onClose }: Props) {
   if (!image) return null;
 
   const currentAlt = altText || image.altText;
+  const isVideo = image.mediaType === "video";
 
   const handleGenerateAlt = () => {
     setAiLoading(true);
@@ -43,14 +44,24 @@ export function ImageDetailModal({ image, onClose }: Props) {
       <Dialog open={!!image} onOpenChange={() => onClose()}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{image.title}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {image.title}
+              {isVideo && <Badge variant="secondary">Video</Badge>}
+            </DialogTitle>
           </DialogHeader>
 
           <div className="grid gap-6 md:grid-cols-[1fr_1fr]">
             {/* Preview */}
             <div className="space-y-3">
-              <div className="rounded-lg overflow-hidden border">
+              <div className="rounded-lg overflow-hidden border relative">
                 <img src={image.src} alt={currentAlt} className="w-full object-contain max-h-[400px]" />
+                {isVideo && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div className="h-16 w-16 rounded-full bg-background/90 flex items-center justify-center shadow-lg">
+                      <Play className="h-8 w-8 text-foreground ml-1" />
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {image.status.map((s) => <StatusBadge key={s} status={s} />)}
@@ -62,6 +73,7 @@ export function ImageDetailModal({ image, onClose }: Props) {
               </div>
               <div className="text-xs text-muted-foreground space-y-0.5">
                 <p>{image.width} × {image.height}px · {image.fileSize}</p>
+                {isVideo && image.duration && <p>Duration: {image.duration}</p>}
                 <p>Uploaded {image.uploadedAt}</p>
               </div>
             </div>
@@ -98,23 +110,12 @@ export function ImageDetailModal({ image, onClose }: Props) {
                 <div>
                   <div className="flex items-center justify-between">
                     <Label className="text-xs text-muted-foreground">Alt Text</Label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleGenerateAlt}
-                      disabled={aiLoading}
-                      className="text-xs gap-1 h-7"
-                    >
+                    <Button variant="ghost" size="sm" onClick={handleGenerateAlt} disabled={aiLoading} className="text-xs gap-1 h-7">
                       <Sparkles className="h-3 w-3" />
                       {aiLoading ? "Generating…" : "Generate AI Alt Text"}
                     </Button>
                   </div>
-                  <Textarea
-                    value={currentAlt}
-                    onChange={(e) => setAltText(e.target.value)}
-                    className="mt-1 resize-none"
-                    rows={2}
-                  />
+                  <Textarea value={currentAlt} onChange={(e) => setAltText(e.target.value)} className="mt-1 resize-none" rows={2} />
                 </div>
               </div>
 
@@ -131,16 +132,8 @@ export function ImageDetailModal({ image, onClose }: Props) {
         </DialogContent>
       </Dialog>
 
-      <ShareModal
-        open={showShare}
-        onClose={() => setShowShare(false)}
-        preselectedImages={[image]}
-      />
-      <PublishModal
-        open={showPublish}
-        onClose={() => setShowPublish(false)}
-        image={image}
-      />
+      <ShareModal open={showShare} onClose={() => setShowShare(false)} preselectedImages={[image]} />
+      <PublishModal open={showPublish} onClose={() => setShowPublish(false)} image={image} />
     </>
   );
 }

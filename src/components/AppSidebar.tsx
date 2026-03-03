@@ -1,6 +1,8 @@
-import { LayoutDashboard, Images, Share2, FolderOpen, Palette, Camera } from "lucide-react";
+import { LayoutDashboard, Images, Share2, FolderOpen, Palette, Camera, Upload, ShieldCheck, Truck } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useUserRole } from "@/contexts/UserRoleContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Sidebar,
   SidebarContent,
@@ -10,23 +12,31 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const items = [
+const adminItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Image Library", url: "/library", icon: Images },
+  { title: "Upload", url: "/upload", icon: Upload },
   { title: "Buckets", url: "/buckets", icon: FolderOpen },
   { title: "Share Manager", url: "/shares", icon: Share2 },
   { title: "Brand Assets", url: "/brand", icon: Palette },
+];
+
+const supplierItems = [
+  { title: "Upload", url: "/upload", icon: Upload },
+  { title: "Image Library", url: "/library", icon: Images },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
-  const isActive = (path: string) =>
-    path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
+  const { role, setRole, isAdmin } = useUserRole();
+
+  const items = isAdmin ? adminItems : supplierItems;
 
   return (
     <Sidebar collapsible="icon">
@@ -59,6 +69,26 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        {!collapsed && (
+          <div className="px-3 py-2 space-y-1.5">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Role</p>
+            <Select value={role} onValueChange={(v) => setRole(v as "admin" | "supplier")}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">
+                  <span className="flex items-center gap-1.5"><ShieldCheck className="h-3 w-3" /> Admin / Editor</span>
+                </SelectItem>
+                <SelectItem value="supplier">
+                  <span className="flex items-center gap-1.5"><Truck className="h-3 w-3" /> Supplier / Photographer</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }

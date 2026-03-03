@@ -8,6 +8,7 @@ import midnightSun1 from "@/assets/mock/midnight-sun-1.jpg";
 import glacier1 from "@/assets/mock/glacier-1.jpg";
 
 export type ImageStatus = "archived" | "shared" | "published";
+export type MediaType = "image" | "video";
 
 export interface ImageItem {
   id: string;
@@ -28,6 +29,8 @@ export interface ImageItem {
   uploadedAt: string;
   wpPublishedAt?: string;
   wpSyncDirty?: boolean;
+  mediaType: MediaType;
+  duration?: string;
 }
 
 export interface ShareLink {
@@ -85,6 +88,7 @@ function generateMockImages(count: number): ImageItem[] {
     const tags = shuffled.slice(0, 2 + (i % 4));
 
     const isPortrait = i % 5 === 2;
+    const isVideo = i % 10 === 5; // ~10% are videos
 
     images.push({
       id: `img-${String(i + 1).padStart(4, "0")}`,
@@ -99,15 +103,14 @@ function generateMockImages(count: number): ImageItem[] {
       altText: `${title} – scenic Nordic tour photography`,
       tags,
       status: statusOptions[i % statusOptions.length],
-      width: isPortrait ? 4000 : 6000,
-      height: isPortrait ? 6000 : 4000,
-      fileSize: `${(14 + (i % 12)).toFixed(1)} MB`,
+      width: isPortrait ? 4000 : (isVideo ? 1920 : 6000),
+      height: isPortrait ? 6000 : (isVideo ? 1080 : 4000),
+      fileSize: isVideo ? `${(80 + (i % 60)).toFixed(0)} MB` : `${(14 + (i % 12)).toFixed(1)} MB`,
       uploadedAt: tourDate,
-      // Some images have been published to WP
+      mediaType: isVideo ? "video" : "image",
+      duration: isVideo ? `${1 + (i % 4)}:${String(10 + (i % 50)).padStart(2, "0")}` : undefined,
       wpPublishedAt: i % 4 === 3 ? tourDate : undefined,
-      // Some published images have dirty metadata (edited after publish)
       wpSyncDirty: i % 4 === 3 && i % 8 === 3,
-      // Some images intentionally have empty descriptions/alt text for testing missing metadata filter
       ...(i % 7 === 0 ? { description: "", altText: "" } : {}),
     });
   }
