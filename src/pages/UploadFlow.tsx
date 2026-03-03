@@ -1,9 +1,8 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { MetadataEntryForm, isFileComplete, type UploadedFile } from "@/components/MetadataEntryForm";
-import { Upload, CheckCircle2, ArrowRight, ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { MetadataEntryForm, countFilledFields, totalFields, type UploadedFile } from "@/components/MetadataEntryForm";
+import { Upload, CheckCircle2, ArrowLeft, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 // Mock images for simulated upload
@@ -21,6 +20,7 @@ function createMockFiles(count: number): UploadedFile[] {
     id: `upload-${i}`,
     name: `IMG_${String(4200 + i).padStart(4, "0")}.jpg`,
     previewUrl: mockPreviews[i % mockPreviews.length],
+    title: "",
     photographer: "",
     copyright: "",
     description: "",
@@ -33,9 +33,9 @@ export default function UploadFlow() {
   const [step, setStep] = useState<"dropzone" | "metadata" | "done">("dropzone");
   const [files, setFiles] = useState<UploadedFile[]>([]);
 
-  const completedCount = useMemo(() => files.filter(isFileComplete).length, [files]);
-  const allComplete = files.length > 0 && completedCount === files.length;
-  const progressPercent = files.length > 0 ? (completedCount / files.length) * 100 : 0;
+  const totalFilledFields = useMemo(() => files.reduce((sum, f) => sum + countFilledFields(f), 0), [files]);
+  const totalPossibleFields = files.length * totalFields;
+  const progressPercent = totalPossibleFields > 0 ? (totalFilledFields / totalPossibleFields) * 100 : 0;
 
   const handleSimulateUpload = (count: number) => {
     setFiles(createMockFiles(count));
@@ -48,7 +48,7 @@ export default function UploadFlow() {
 
   const handleFinalize = () => {
     setStep("done");
-    toast.success(`${files.length} images uploaded with complete metadata`);
+    toast.success(`${files.length} images uploaded`);
   };
 
   if (step === "done") {
@@ -58,7 +58,7 @@ export default function UploadFlow() {
           <CheckCircle2 className="h-20 w-20 text-success mx-auto" />
           <h1 className="text-2xl font-semibold">Upload Complete</h1>
           <p className="text-muted-foreground">
-            {files.length} image{files.length !== 1 ? "s" : ""} uploaded with full metadata.
+            {files.length} image{files.length !== 1 ? "s" : ""} uploaded.
             They are now available in the Image Library.
           </p>
           <Button onClick={() => { setStep("dropzone"); setFiles([]); }}>
@@ -76,7 +76,7 @@ export default function UploadFlow() {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Fill Metadata</h1>
             <p className="text-muted-foreground mt-1">
-              All required fields must be completed before finalizing.
+              Add metadata to your images. You can finalize at any time.
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={() => setStep("dropzone")} className="gap-1.5">
@@ -88,34 +88,32 @@ export default function UploadFlow() {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
-              {completedCount} of {files.length} images complete
+              {totalFilledFields} of {totalPossibleFields} fields filled
             </span>
             <span className="font-medium text-primary">{Math.round(progressPercent)}%</span>
           </div>
           <Progress value={progressPercent} className="h-2" />
         </div>
 
-        {/* Forms */}
-        <ScrollArea className="max-h-[calc(100vh-280px)]">
-          <div className="space-y-4 pr-2">
-            {files.map((file, idx) => (
-              <MetadataEntryForm
-                key={file.id}
-                file={file}
-                onChange={(updated) => handleFileChange(idx, updated)}
-              />
-            ))}
-          </div>
-        </ScrollArea>
+        {/* Forms — native scroll */}
+        <div className="space-y-4">
+          {files.map((file, idx) => (
+            <MetadataEntryForm
+              key={file.id}
+              file={file}
+              onChange={(updated) => handleFileChange(idx, updated)}
+            />
+          ))}
+        </div>
 
         {/* Finalize */}
         <div className="flex items-center justify-between pt-2 border-t">
           <p className="text-sm text-muted-foreground">
-            {allComplete
-              ? "All metadata is complete — ready to finalize!"
-              : `${files.length - completedCount} image${files.length - completedCount !== 1 ? "s" : ""} still need metadata.`}
+            {Math.round(progressPercent) === 100
+              ? "All metadata filled — ready to finalize!"
+              : `${Math.round(progressPercent)}% of metadata filled.`}
           </p>
-          <Button onClick={handleFinalize} disabled={!allComplete} className="gap-1.5">
+          <Button onClick={handleFinalize} className="gap-1.5">
             <CheckCircle2 className="h-4 w-4" /> Finalize Upload
           </Button>
         </div>
