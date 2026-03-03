@@ -10,6 +10,7 @@ import ImageLibrary from "@/pages/ImageLibrary";
 import ShareManager from "@/pages/ShareManager";
 import BrandAssets from "@/pages/BrandAssets";
 import UploadFlow from "@/pages/UploadFlow";
+import Settings from "@/pages/Settings";
 import NotFound from "./pages/NotFound";
 
 
@@ -29,6 +30,7 @@ const App = () => (
               <Route path="/upload" element={<UploadFlow />} />
               <Route path="/shares" element={<ShareManager />} />
               <Route path="/brand" element={<BrandAssets />} />
+              <Route path="/settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Images, Share2, FolderOpen, Palette, Camera, Upload, ShieldCheck, Truck } from "lucide-react";
+import { LayoutDashboard, Images, Share2, FolderOpen, Palette, Camera, Upload, ShieldCheck, Truck, Settings2 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUserRole } from "@/contexts/UserRoleContext";
@@ -22,6 +22,7 @@ const adminItems = [
   { title: "Upload", url: "/upload", icon: Upload },
   { title: "Share Manager", url: "/shares", icon: Share2 },
   { title: "Brand Assets", url: "/brand", icon: Palette },
+  { title: "Settings", url: "/settings", icon: Settings2 },
 ];
 
 const supplierItems = [
