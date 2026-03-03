@@ -1,32 +1,30 @@
 
 
-# Fix Upload Flow: Scrolling, Remove Mandatory Fields, Add Title & AI Alt Text
+# Merge Share Manager & Buckets into One View
 
-## Problems identified
+## Concept
 
-1. **Can't reach image 2+**: The `ScrollArea` with `max-h-[calc(100vh-280px)]` is likely clipping content. Each metadata form is tall (~400px), so with 3 images the content overflows but scrolling doesn't work properly. Fix: remove `ScrollArea` wrapper and use normal page scrolling with `overflow-y-auto` on the container.
+Combine both pages into a single **Share Manager** page with two sections using tabs:
 
-2. **Fields should not be mandatory**: Currently `isFileComplete` blocks the "Finalize Upload" button. Remove the `disabled={!allComplete}` constraint so users can finalize at any time. Keep the progress indicator as a soft nudge but not a blocker. Remove red border styling on empty fields and the destructive badge.
+1. **Buckets** -- Reusable, named collections (current Buckets functionality)
+2. **Quick Shares** -- One-off share links not tied to a bucket (current ShareManager links)
 
-3. **Missing "Title" field**: Add a `title` field to `UploadedFile` and a corresponding input in the form.
-
-4. **AI Alt Text generation**: Add a "Generate AI Alt Text" button per image in `MetadataEntryForm`, matching the pattern already used in `ImageDetailModal` (mock delayed result with `setTimeout`).
+"Quick Shares" conveys that these are ad-hoc, disposable shares vs. the persistent bucket collections.
 
 ## Changes
 
-### `src/components/MetadataEntryForm.tsx`
-- Add `title: string` to `UploadedFile` interface
-- Remove `requiredFields` array and the `isFileComplete` mandatory check -- replace with a softer "filled fields" counter
-- Remove red/destructive styling; use neutral borders with a subtle highlight when fields are filled
-- Add a "Title" input field (first field, full width)
-- Add a "Generate AI Alt Text" button next to the Alt Text label (uses `setTimeout` mock, same as `ImageDetailModal`)
-- Remove the `*` required markers from labels
+### `src/pages/ShareManager.tsx`
+- Rewrite to include a `Tabs` component with two tabs: **Buckets** and **Quick Shares**
+- **Buckets tab**: Move all content from `Buckets.tsx` here (bucket list, edit, share, delete, thumbnails, expand/collapse)
+- **Quick Shares tab**: Keep current share links list + "New Share Link" button
+- Header stays as "Share Manager" with subtitle "Manage buckets and share links"
 
-### `src/pages/UploadFlow.tsx`
-- Add `title: ""` to `createMockFiles`
-- Remove `ScrollArea` -- use a simple `div` with `overflow-y-auto` and proper height so all images are scrollable
-- Change "Finalize Upload" to always be enabled (remove `disabled={!allComplete}`)
-- Keep progress bar as informational only ("X of Y images have metadata")
-- Update `isFileComplete` usage to be purely visual (count of filled fields rather than blocker)
-- Update description text to remove "required" language
+### `src/pages/Buckets.tsx`
+- Delete this file (no longer needed as a standalone page)
+
+### `src/App.tsx`
+- Remove `/buckets` route and `Buckets` import
+
+### `src/components/AppSidebar.tsx`
+- Remove the "Buckets" nav item from `adminItems`; keep only "Share Manager"
 
