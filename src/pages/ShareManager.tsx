@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { mockShareLinks, mockImages } from "@/data/mockData";
+import { mockShareLinks } from "@/data/mockData";
 import type { ImageItem } from "@/data/mockData";
+import { imageStore } from "@/stores/imageStore";
 import { useBuckets, deleteBucket, removeImageFromBucket } from "@/stores/bucketStore";
 import type { Bucket } from "@/stores/bucketStore";
 import { getLogosByIds, type LogoAsset } from "@/stores/logoStore";
@@ -39,7 +40,8 @@ function logoToImageItem(logo: LogoAsset): ImageItem {
 function resolveAssets(ids: string[]): ImageItem[] {
   const logoIds = ids.filter((id) => id.startsWith("logo-"));
   const imageIds = ids.filter((id) => !id.startsWith("logo-"));
-  const images = mockImages.filter((i) => imageIds.includes(i.id));
+  const allImages = imageStore.getImages();
+  const images = allImages.filter((i) => imageIds.includes(i.id));
   const logos = getLogosByIds(logoIds).map(logoToImageItem);
   return [...images, ...logos];
 }
