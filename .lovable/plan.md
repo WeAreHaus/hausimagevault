@@ -1,57 +1,32 @@
 
 
-# Implementation Plan
+# Fix Upload Flow: Scrolling, Remove Mandatory Fields, Add Title & AI Alt Text
 
-## 1. Batch Publish to WordPress
+## Problems identified
 
-Add a "Publish Selected" button in the bulk action bar (alongside "Share Selected" and "Add to Bucket"). Create a `BatchPublishModal` component that:
-- Shows thumbnails of all selected images
-- Runs a simulated multi-step publish process (resize, optimize, attach metadata, push to WP) with a progress bar across all images
-- Marks each image as published upon completion
-- Shows a summary when done
+1. **Can't reach image 2+**: The `ScrollArea` with `max-h-[calc(100vh-280px)]` is likely clipping content. Each metadata form is tall (~400px), so with 3 images the content overflows but scrolling doesn't work properly. Fix: remove `ScrollArea` wrapper and use normal page scrolling with `overflow-y-auto` on the container.
 
-Changes: `ImageLibrary.tsx` (add button), new `BatchPublishModal.tsx`, `PublishModal.tsx` (reuse step definitions).
+2. **Fields should not be mandatory**: Currently `isFileComplete` blocks the "Finalize Upload" button. Remove the `disabled={!allComplete}` constraint so users can finalize at any time. Keep the progress indicator as a soft nudge but not a blocker. Remove red border styling on empty fields and the destructive badge.
 
-## 2. Video Category
+3. **Missing "Title" field**: Add a `title` field to `UploadedFile` and a corresponding input in the form.
 
-Extend the data model to support a `mediaType: "image" | "video"` field on `ImageItem` (rename to `MediaItem` or keep and extend). Add mock video entries with a play icon overlay in the grid. Add a media type filter dropdown in the library. The detail modal adapts to show a video placeholder instead of an image preview.
+4. **AI Alt Text generation**: Add a "Generate AI Alt Text" button per image in `MetadataEntryForm`, matching the pattern already used in `ImageDetailModal` (mock delayed result with `setTimeout`).
 
-Changes: `mockData.ts` (add field + mock video items), `ImageLibrary.tsx` (filter + video overlay), `ImageDetailModal.tsx` (video-aware preview).
+## Changes
 
-## 3. User Roles & Role Switcher
+### `src/components/MetadataEntryForm.tsx`
+- Add `title: string` to `UploadedFile` interface
+- Remove `requiredFields` array and the `isFileComplete` mandatory check -- replace with a softer "filled fields" counter
+- Remove red/destructive styling; use neutral borders with a subtle highlight when fields are filled
+- Add a "Title" input field (first field, full width)
+- Add a "Generate AI Alt Text" button next to the Alt Text label (uses `setTimeout` mock, same as `ImageDetailModal`)
+- Remove the `*` required markers from labels
 
-Since this is a prototype without auth, implement a role context (`UserRoleContext`) with a role switcher in the sidebar. Two roles:
-
-- **Admin/Editor** -- full access to all features (current behavior)
-- **Supplier/Photographer** -- limited view: can upload images and must fill metadata, cannot access Share Manager, Brand Assets, etc.
-
-The sidebar adapts navigation items based on role. A mock role toggle sits at the bottom of the sidebar.
-
-Changes: New `UserRoleContext.tsx`, update `AppSidebar.tsx` (conditional nav items + role switcher).
-
-## 4. Upload Flow with Mandatory Metadata
-
-Create an `UploadFlow` page/modal accessible from both roles. The flow has two steps:
-
-**Step 1 -- Drop Zone**: Drag-and-drop area or file picker. Simulates selecting multiple files. Shows thumbnails of "uploaded" files.
-
-**Step 2 -- Metadata Form**: A scrollable list of uploaded images, each with required fields (photographer, copyright, description, alt text, tags). Fields are validated -- user cannot proceed until all required fields are filled. Visual indicators (red borders, completion percentage) make it clear what's missing. A progress bar shows "12 of 15 images complete". This enforces metadata entry without being frustrating.
-
-For suppliers, this is the primary landing page. For admins, it's accessible via an "Upload" button in the library header.
-
-Changes: New `UploadFlow.tsx` page, new `MetadataEntryForm.tsx` component, route in `App.tsx`, nav item in sidebar.
-
-## Files to Create/Modify
-
-| File | Action |
-|------|--------|
-| `src/components/BatchPublishModal.tsx` | Create -- batch publish simulation |
-| `src/pages/UploadFlow.tsx` | Create -- upload + metadata entry flow |
-| `src/components/MetadataEntryForm.tsx` | Create -- per-image metadata form with validation |
-| `src/contexts/UserRoleContext.tsx` | Create -- role state + provider |
-| `src/data/mockData.ts` | Modify -- add `mediaType` field, mock videos |
-| `src/pages/ImageLibrary.tsx` | Modify -- add Publish button, media type filter, video overlay |
-| `src/components/ImageDetailModal.tsx` | Modify -- video-aware preview |
-| `src/components/AppSidebar.tsx` | Modify -- role-based nav + role switcher |
-| `src/App.tsx` | Modify -- add upload route, wrap with role provider |
+### `src/pages/UploadFlow.tsx`
+- Add `title: ""` to `createMockFiles`
+- Remove `ScrollArea` -- use a simple `div` with `overflow-y-auto` and proper height so all images are scrollable
+- Change "Finalize Upload" to always be enabled (remove `disabled={!allComplete}`)
+- Keep progress bar as informational only ("X of Y images have metadata")
+- Update `isFileComplete` usage to be purely visual (count of filled fields rather than blocker)
+- Update description text to remove "required" language
 
