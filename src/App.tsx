@@ -8,7 +8,6 @@ import { UserRoleProvider } from "@/contexts/UserRoleContext";
 import Dashboard from "@/pages/Dashboard";
 import ImageLibrary from "@/pages/ImageLibrary";
 import ShareManager from "@/pages/ShareManager";
-import Buckets from "@/pages/Buckets";
 import BrandAssets from "@/pages/BrandAssets";
 import UploadFlow from "@/pages/UploadFlow";
 import NotFound from "./pages/NotFound";
@@ -28,7 +27,6 @@ const App = () => (
               <Route path="/" element={<Dashboard />} />
               <Route path="/library" element={<ImageLibrary />} />
               <Route path="/upload" element={<UploadFlow />} />
-              <Route path="/buckets" element={<Buckets />} />
               <Route path="/shares" element={<ShareManager />} />
               <Route path="/brand" element={<BrandAssets />} />
             </Route>
