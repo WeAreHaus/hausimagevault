@@ -20,7 +20,6 @@ const adminItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Image Library", url: "/library", icon: Images },
   { title: "Upload", url: "/upload", icon: Upload },
-  { title: "Buckets", url: "/buckets", icon: FolderOpen },
   { title: "Share Manager", url: "/shares", icon: Share2 },
   { title: "Brand Assets", url: "/brand", icon: Palette },
 ];
