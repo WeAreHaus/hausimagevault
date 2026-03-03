@@ -261,14 +261,17 @@ export default function BrandAssets() {
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
           {brandColors.map((color) => (
             <Card key={color.id} className="overflow-hidden">
-              <div className="h-20 relative" style={{ backgroundColor: color.value }}>
+              <div className="h-20 relative" style={{ backgroundColor: colorEditId === color.id ? colorEditValue : color.value }}>
                 {colorEditId === color.id && (
-                  <input
-                    type="color"
-                    value={colorEditValue}
-                    onChange={(e) => setColorEditValue(e.target.value)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
+                  <label className="absolute inset-0 flex items-center justify-center cursor-pointer bg-black/20 hover:bg-black/30 transition-colors">
+                    <span className="text-xs font-medium text-white bg-black/40 px-2 py-1 rounded">Click to change</span>
+                    <input
+                      type="color"
+                      value={colorEditValue}
+                      onChange={(e) => setColorEditValue(e.target.value)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </label>
                 )}
               </div>
               <CardContent className="p-3">
