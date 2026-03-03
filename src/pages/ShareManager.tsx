@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { mockShareLinks, mockImages } from "@/data/mockData";
+import type { ImageItem } from "@/data/mockData";
 import { useBuckets, deleteBucket, removeImageFromBucket } from "@/stores/bucketStore";
 import type { Bucket } from "@/stores/bucketStore";
+import { getLogosByIds, type LogoAsset } from "@/stores/logoStore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +13,36 @@ import { ShareModal } from "@/components/ShareModal";
 import { BucketEditModal } from "@/components/BucketEditModal";
 import { toast } from "sonner";
 
+function logoToImageItem(logo: LogoAsset): ImageItem {
+  return {
+    id: logo.id,
+    src: logo.previewUrl,
+    title: logo.name,
+    photographer: "",
+    copyright: "",
+    tourDate: "",
+    groupId: "",
+    guide: "",
+    description: "",
+    altText: logo.name,
+    tags: ["logo"],
+    status: [],
+    width: 0,
+    height: 0,
+    fileSize: "",
+    uploadedAt: logo.uploadedAt,
+    mediaType: "image",
+  };
+}
+
+function resolveAssets(ids: string[]): ImageItem[] {
+  const logoIds = ids.filter((id) => id.startsWith("logo-"));
+  const imageIds = ids.filter((id) => !id.startsWith("logo-"));
+  const images = mockImages.filter((i) => imageIds.includes(i.id));
+  const logos = getLogosByIds(logoIds).map(logoToImageItem);
+  return [...images, ...logos];
+}
+
 export default function ShareManager() {
   const buckets = useBuckets();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -18,7 +50,7 @@ export default function ShareManager() {
   const [createMode, setCreateMode] = useState(false);
   const [shareBucket, setShareBucket] = useState<Bucket | null>(null);
 
-  const getImages = (ids: string[]) => mockImages.filter((i) => ids.includes(i.id));
+  const getImages = (ids: string[]) => resolveAssets(ids);
 
   const handleDeleteBucket = (b: Bucket) => {
     deleteBucket(b.id);
