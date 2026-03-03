@@ -3,9 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, Copy, Check, Download, FolderPlus, Share2, Trash2, Pencil } from "lucide-react";
+import { Upload, Copy, Check, Download, FolderPlus, Share2, Trash2, Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useLogos, removeLogo, updateLogoName, type LogoAsset } from "@/stores/logoStore";
+import { useBrandColors, addBrandColor, updateBrandColor, removeBrandColor } from "@/stores/brandColorStore";
 import { LogoUploadModal } from "@/components/LogoUploadModal";
 import { AddToBucketModal } from "@/components/AddToBucketModal";
 import { ShareModal } from "@/components/ShareModal";
@@ -15,7 +16,7 @@ import type { ImageItem } from "@/data/mockData";
 interface BrandAsset {
   id: string;
   name: string;
-  category: "favicon" | "color" | "font";
+  category: "favicon" | "font";
   src?: string;
   value?: string;
   format?: string;
@@ -25,17 +26,12 @@ interface BrandAsset {
 const mockAssets: BrandAsset[] = [
   { id: "ba-4", name: "Favicon 32×32", category: "favicon", src: "/favicon.ico", format: "ICO", dimensions: "32×32" },
   { id: "ba-5", name: "Favicon 180×180", category: "favicon", src: "/placeholder.svg", format: "PNG", dimensions: "180×180" },
-  { id: "ba-6", name: "Primary Teal", category: "color", value: "#4d998f" },
-  { id: "ba-7", name: "Dark Navy", category: "color", value: "#262d33" },
-  { id: "ba-8", name: "Warm Sand", category: "color", value: "#f7f5f2" },
-  { id: "ba-9", name: "Accent Gold", category: "color", value: "#d4a843" },
   { id: "ba-10", name: "DM Sans", category: "font", value: "DM Sans" },
 ];
 
-const categories = ["favicon", "color", "font"] as const;
+const categories = ["favicon", "font"] as const;
 const categoryLabels: Record<string, string> = {
   favicon: "Favicons",
-  color: "Brand Colors",
   font: "Typography",
 };
 
@@ -70,8 +66,15 @@ export default function BrandAssets() {
   const [editName, setEditName] = useState("");
   const [bucketLogoId, setBucketLogoId] = useState<string | null>(null);
   const [shareLogo, setShareLogo] = useState<LogoAsset | null>(null);
+  const [colorEditId, setColorEditId] = useState<string | null>(null);
+  const [colorEditName, setColorEditName] = useState("");
+  const [colorEditValue, setColorEditValue] = useState("#000000");
+  const [showAddColor, setShowAddColor] = useState(false);
+  const [newColorName, setNewColorName] = useState("");
+  const [newColorValue, setNewColorValue] = useState("#000000");
 
   const logos = useLogos();
+  const brandColors = useBrandColors();
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -199,6 +202,133 @@ export default function BrandAssets() {
         )}
       </div>
 
+      {/* === BRAND COLORS === */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Brand Colors</h2>
+          {!showAddColor && (
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setShowAddColor(true)}>
+              <Plus className="h-4 w-4" /> Add Color
+            </Button>
+          )}
+        </div>
+
+        {showAddColor && (
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <input
+                type="color"
+                value={newColorValue}
+                onChange={(e) => setNewColorValue(e.target.value)}
+                className="h-10 w-10 rounded border cursor-pointer shrink-0"
+              />
+              <Input
+                value={newColorName}
+                onChange={(e) => setNewColorName(e.target.value)}
+                placeholder="Color name…"
+                className="flex-1"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newColorName.trim()) {
+                    addBrandColor(newColorName.trim(), newColorValue);
+                    toast.success(`Added "${newColorName.trim()}"`);
+                    setNewColorName("");
+                    setNewColorValue("#000000");
+                    setShowAddColor(false);
+                  }
+                }}
+              />
+              <Button
+                size="sm"
+                disabled={!newColorName.trim()}
+                onClick={() => {
+                  addBrandColor(newColorName.trim(), newColorValue);
+                  toast.success(`Added "${newColorName.trim()}"`);
+                  setNewColorName("");
+                  setNewColorValue("#000000");
+                  setShowAddColor(false);
+                }}
+              >
+                Add
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => { setShowAddColor(false); setNewColorName(""); setNewColorValue("#000000"); }}>
+                Cancel
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
+          {brandColors.map((color) => (
+            <Card key={color.id} className="overflow-hidden">
+              <div className="h-20 relative" style={{ backgroundColor: color.value }}>
+                {colorEditId === color.id && (
+                  <input
+                    type="color"
+                    value={colorEditValue}
+                    onChange={(e) => setColorEditValue(e.target.value)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                )}
+              </div>
+              <CardContent className="p-3">
+                {colorEditId === color.id ? (
+                  <div className="space-y-2">
+                    <Input
+                      value={colorEditName}
+                      onChange={(e) => setColorEditName(e.target.value)}
+                      className="h-7 text-sm"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          updateBrandColor(color.id, { name: colorEditName.trim() || color.name, value: colorEditValue });
+                          setColorEditId(null);
+                          toast.success("Color updated");
+                        }
+                      }}
+                    />
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        className="h-6 text-xs flex-1"
+                        onClick={() => {
+                          updateBrandColor(color.id, { name: colorEditName.trim() || color.name, value: colorEditValue });
+                          setColorEditId(null);
+                          toast.success("Color updated");
+                        }}
+                      >
+                        Save
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setColorEditId(null)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">{color.name}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{color.value}</p>
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(color.value, color.id)}>
+                        {copiedId === color.id ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setColorEditId(color.id); setColorEditName(color.name); setColorEditValue(color.value); }}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { removeBrandColor(color.id); toast.success(`Deleted "${color.name}"`); }}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
       {/* === OTHER CATEGORIES === */}
       {categories.map((cat) => {
         const assets = mockAssets.filter((a) => a.category === cat);
@@ -208,29 +338,7 @@ export default function BrandAssets() {
           <div key={cat} className="space-y-3">
             <h2 className="text-lg font-semibold">{categoryLabels[cat]}</h2>
 
-            {cat === "color" ? (
-              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
-                {assets.map((asset) => (
-                  <Card key={asset.id} className="overflow-hidden">
-                    <div className="h-20" style={{ backgroundColor: asset.value }} />
-                    <CardContent className="p-3 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">{asset.name}</p>
-                        <p className="text-xs text-muted-foreground font-mono">{asset.value}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => handleCopy(asset.value!, asset.id)}
-                      >
-                        {copiedId === asset.id ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : cat === "font" ? (
+            {cat === "font" ? (
               <div className="grid gap-3">
                 {assets.map((asset) => (
                   <Card key={asset.id}>
