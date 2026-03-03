@@ -1,30 +1,29 @@
 
 
-# Merge Share Manager & Buckets into One View
+# Plan: Aktivera dropzone + Fixa bucket-persistens
 
-## Concept
+## Problem 1: Buckets försvinner
 
-Combine both pages into a single **Share Manager** page with two sections using tabs:
+`bucketStore.ts` använder en modul-lokal `let buckets` variabel. Denna nollställs varje gång Vite gör en HMR-uppdatering (hot module reload) eftersom modulen laddas om och den initiala arrayen med bara 2 hårdkodade buckets återställs. Alla buckets som skapats under sessionen försvinner.
 
-1. **Buckets** -- Reusable, named collections (current Buckets functionality)
-2. **Quick Shares** -- One-off share links not tied to a bucket (current ShareManager links)
+**Fix**: Spara buckets i `localStorage`. Vid modulstart, läs från localStorage. Vid varje mutation, skriv tillbaka. Behåll de 2 default-buckets som fallback om localStorage är tomt.
 
-"Quick Shares" conveys that these are ad-hoc, disposable shares vs. the persistent bucket collections.
+## Problem 2: Dropzone är inte interaktiv
 
-## Changes
+Dropzonen i `UploadFlow.tsx` är bara visuell — den har ingen `<input type="file">` och hanterar inga drag-events. Den ska aktiveras så att man faktiskt kan välja filer från sin dator (bilder visas som thumbnails via `URL.createObjectURL`).
 
-### `src/pages/ShareManager.tsx`
-- Rewrite to include a `Tabs` component with two tabs: **Buckets** and **Quick Shares**
-- **Buckets tab**: Move all content from `Buckets.tsx` here (bucket list, edit, share, delete, thumbnails, expand/collapse)
-- **Quick Shares tab**: Keep current share links list + "New Share Link" button
-- Header stays as "Share Manager" with subtitle "Manage buckets and share links"
+**Fix**: Lägg till en dold `<input type="file" multiple accept="image/*">` kopplad till dropzonen. Lägg till `onDragOver`/`onDrop`-handlers. När filer väljs, skapa `UploadedFile[]` med `URL.createObjectURL` som `previewUrl` och gå till metadata-steget. Behåll simuleringsknappar som alternativ.
 
-### `src/pages/Buckets.tsx`
-- Delete this file (no longer needed as a standalone page)
+## Ändringar
 
-### `src/App.tsx`
-- Remove `/buckets` route and `Buckets` import
+### `src/stores/bucketStore.ts`
+- Läs initial state från `localStorage` (key `"dam-buckets"`), fallback till default-data
+- I `emit()`, skriv `buckets` till `localStorage`
 
-### `src/components/AppSidebar.tsx`
-- Remove the "Buckets" nav item from `adminItems`; keep only "Share Manager"
+### `src/pages/UploadFlow.tsx`
+- Lägg till `<input type="file" multiple accept="image/*" ref={fileInputRef}>` (dold)
+- Klick på dropzone triggar `fileInputRef.current.click()`
+- `onDragOver`, `onDragLeave`, `onDrop` handlers med visuell drag-state
+- Konvertera `FileList` → `UploadedFile[]` med `URL.createObjectURL`
+- Gå till metadata-steg automatiskt efter filval
 
