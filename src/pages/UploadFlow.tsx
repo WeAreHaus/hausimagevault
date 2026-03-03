@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { MetadataEntryForm, countFilledFields, totalFields, type UploadedFile } from "@/components/MetadataEntryForm";
@@ -29,13 +29,42 @@ function createMockFiles(count: number): UploadedFile[] {
   }));
 }
 
+function filesToUploaded(fileList: FileList): UploadedFile[] {
+  return Array.from(fileList).map((file, i) => ({
+    id: `upload-real-${Date.now()}-${i}`,
+    name: file.name,
+    previewUrl: URL.createObjectURL(file),
+    title: "",
+    photographer: "",
+    copyright: "",
+    description: "",
+    altText: "",
+    tags: "",
+  }));
+}
+
 export default function UploadFlow() {
   const [step, setStep] = useState<"dropzone" | "metadata" | "done">("dropzone");
   const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totalFilledFields = useMemo(() => files.reduce((sum, f) => sum + countFilledFields(f), 0), [files]);
   const totalPossibleFields = files.length * totalFields;
   const progressPercent = totalPossibleFields > 0 ? (totalFilledFields / totalPossibleFields) * 100 : 0;
+
+  const handleRealFiles = useCallback((fileList: FileList) => {
+    const imageFiles = Array.from(fileList).filter((f) => f.type.startsWith("image/"));
+    if (imageFiles.length === 0) {
+      toast.error("No image files selected");
+      return;
+    }
+    const dt = new DataTransfer();
+    imageFiles.forEach((f) => dt.items.add(f));
+    setFiles(filesToUploaded(dt.files));
+    setStep("metadata");
+    toast.success(`${imageFiles.length} image${imageFiles.length !== 1 ? "s" : ""} added`);
+  }, []);
 
   const handleSimulateUpload = (count: number) => {
     setFiles(createMockFiles(count));
@@ -50,6 +79,24 @@ export default function UploadFlow() {
     setStep("done");
     toast.success(`${files.length} images uploaded`);
   };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    if (e.dataTransfer.files.length > 0) {
+      handleRealFiles(e.dataTransfer.files);
+    }
+  }, [handleRealFiles]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+  }, []);
 
   if (step === "done") {
     return (
@@ -129,10 +176,29 @@ export default function UploadFlow() {
         Drag &amp; drop or select files to upload. You'll fill in metadata in the next step.
       </p>
 
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => e.target.files && handleRealFiles(e.target.files)}
+      />
+
       <div className="mt-8 max-w-xl mx-auto">
-        <div className="border-2 border-dashed rounded-xl p-16 text-center hover:border-primary/50 hover:bg-accent/30 transition-colors cursor-pointer">
-          <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-lg font-medium">Drop images here</p>
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          className={`border-2 border-dashed rounded-xl p-16 text-center transition-colors cursor-pointer ${
+            dragging
+              ? "border-primary bg-primary/10"
+              : "hover:border-primary/50 hover:bg-accent/30"
+          }`}
+        >
+          <Upload className={`h-12 w-12 mx-auto mb-4 ${dragging ? "text-primary" : "text-muted-foreground"}`} />
+          <p className="text-lg font-medium">{dragging ? "Drop images here" : "Drop images here"}</p>
           <p className="text-sm text-muted-foreground mt-1">or click to browse</p>
         </div>
 
