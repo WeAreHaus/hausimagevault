@@ -1,29 +1,32 @@
 
 
-# Plan: Aktivera dropzone + Fixa bucket-persistens
+# Plan: Uppladdade bilder visas i biblioteket + sortering
 
-## Problem 1: Buckets försvinner
+## Problem
 
-`bucketStore.ts` använder en modul-lokal `let buckets` variabel. Denna nollställs varje gång Vite gör en HMR-uppdatering (hot module reload) eftersom modulen laddas om och den initiala arrayen med bara 2 hårdkodade buckets återställs. Alla buckets som skapats under sessionen försvinner.
+`handleFinalize` i `UploadFlow.tsx` visar bara en toast — den lägger aldrig till bilderna i någon delad state. `ImageLibrary` läser direkt från den statiska `mockImages`-arrayen i `mockData.ts`, så uppladdade bilder syns aldrig.
 
-**Fix**: Spara buckets i `localStorage`. Vid modulstart, läs från localStorage. Vid varje mutation, skriv tillbaka. Behåll de 2 default-buckets som fallback om localStorage är tomt.
+## Lösning
 
-## Problem 2: Dropzone är inte interaktiv
+Skapa en **imageStore** (samma mönster som `bucketStore`) som håller alla bilder — både mock-data och uppladdade. Persistera i `localStorage` så bilder överlever sidladdningar.
 
-Dropzonen i `UploadFlow.tsx` är bara visuell — den har ingen `<input type="file">` och hanterar inga drag-events. Den ska aktiveras så att man faktiskt kan välja filer från sin dator (bilder visas som thumbnails via `URL.createObjectURL`).
+### Ändringar
 
-**Fix**: Lägg till en dold `<input type="file" multiple accept="image/*">` kopplad till dropzonen. Lägg till `onDragOver`/`onDrop`-handlers. När filer väljs, skapa `UploadedFile[]` med `URL.createObjectURL` som `previewUrl` och gå till metadata-steget. Behåll simuleringsknappar som alternativ.
+#### Ny fil: `src/stores/imageStore.ts`
+- Exportera en reaktiv store med `subscribe`/`getImages`-mönster (samma som bucketStore)
+- Initialt: ladda från `localStorage`, fallback till `mockImages`
+- `addImages(files: UploadedFile[])` — konverterar `UploadedFile` till `ImageItem` och lägger till i listan med `uploadedAt: new Date().toISOString()`
+- Persistera till `localStorage` vid varje mutation
 
-## Ändringar
+#### `src/pages/UploadFlow.tsx`
+- I `handleFinalize`: anropa `imageStore.addImages(files)` för att spara bilderna
 
-### `src/stores/bucketStore.ts`
-- Läs initial state från `localStorage` (key `"dam-buckets"`), fallback till default-data
-- I `emit()`, skriv `buckets` till `localStorage`
-
-### `src/pages/UploadFlow.tsx`
-- Lägg till `<input type="file" multiple accept="image/*" ref={fileInputRef}>` (dold)
-- Klick på dropzone triggar `fileInputRef.current.click()`
-- `onDragOver`, `onDragLeave`, `onDrop` handlers med visuell drag-state
-- Konvertera `FileList` → `UploadedFile[]` med `URL.createObjectURL`
-- Gå till metadata-steg automatiskt efter filval
+#### `src/pages/ImageLibrary.tsx`
+- Byt från statisk `mockImages`-import till `imageStore.getImages()` med `useSyncExternalStore` (eller subscribe-pattern)
+- Lägg till en **sorteringsväljare** (Select) i filter-raden med alternativen:
+  - "Newest first" (standard) — sorterar på `uploadedAt` desc
+  - "Oldest first" — sorterar på `uploadedAt` asc
+  - "Title A–Z"
+  - "Title Z–A"
+- Uppdatera `photographers`, `guides`, `groupIds`, `allTags` att deriveras från den dynamiska listan istället för statiska exporter
 
