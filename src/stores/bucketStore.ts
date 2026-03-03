@@ -8,7 +8,9 @@ export interface Bucket {
   createdAt: string;
 }
 
-let buckets: Bucket[] = [
+const STORAGE_KEY = "dam-buckets";
+
+const defaultBuckets: Bucket[] = [
   {
     id: "bucket-001",
     name: "Lofoten Highlights",
@@ -25,9 +27,24 @@ let buckets: Bucket[] = [
   },
 ];
 
+function loadBuckets(): Bucket[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return defaultBuckets;
+}
+
+let buckets: Bucket[] = loadBuckets();
+
 let listeners: Set<() => void> = new Set();
 
+function persist() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(buckets)); } catch {}
+}
+
 function emit() {
+  persist();
   listeners.forEach((l) => l());
 }
 
