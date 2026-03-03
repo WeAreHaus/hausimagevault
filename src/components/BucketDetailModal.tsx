@@ -1,8 +1,8 @@
 import { imageStore } from "@/stores/imageStore";
 import type { ImageItem } from "@/data/mockData";
-import { getLogosByIds, getLogoById, type LogoAsset } from "@/stores/logoStore";
+import { getLogoById, type LogoAsset } from "@/stores/logoStore";
 import { removeImageFromBucket } from "@/stores/bucketStore";
-import type { Bucket } from "@/stores/bucketStore";
+import type { Bucket, AssetDeliveryOptions } from "@/stores/bucketStore";
 import {
   Dialog,
   DialogContent,
@@ -25,44 +25,100 @@ import { toast } from "sonner";
 
 const VECTOR_FORMATS = ["SVG", "AI", "PDF", "EPS"];
 
-interface ResolvedAsset {
-  id: string;
+const SIZE_LABELS: Record<string, string> = {
+  S: "512px",
+  L: "1024px",
+  XL: "2048px",
+};
+
+interface DetailRow {
+  id: string;           // original asset id
+  rowKey: string;       // unique key for React
   src: string;
   title: string;
   isVector: boolean;
   originalFormat: string;
   fileSize: string;
   uploadedAt: string;
+  deliveryLabel?: string; // e.g. "PNG · L (1024px)"
 }
 
-function resolveToDetailAssets(ids: string[]): ResolvedAsset[] {
-  return ids.map((id) => {
+function resolveToDetailRows(ids: string[], assetOptions?: Record<string, AssetDeliveryOptions>): DetailRow[] {
+  const rows: DetailRow[] = [];
+
+  for (const id of ids) {
     if (id.startsWith("logo-")) {
       const logo = getLogoById(id);
-      if (!logo) return null;
-      return {
-        id: logo.id,
-        src: logo.previewUrl,
-        title: logo.name,
-        isVector: VECTOR_FORMATS.includes(logo.originalFormat),
-        originalFormat: logo.originalFormat,
-        fileSize: "—",
-        uploadedAt: logo.uploadedAt,
-      };
+      if (!logo) continue;
+
+      const opts = assetOptions?.[id];
+
+      if (!opts) {
+        // No delivery options stored — show as single vector row
+        rows.push({
+          id: logo.id,
+          rowKey: logo.id,
+          src: logo.previewUrl,
+          title: logo.name,
+          isVector: VECTOR_FORMATS.includes(logo.originalFormat),
+          originalFormat: logo.originalFormat,
+          fileSize: "—",
+          uploadedAt: logo.uploadedAt,
+        });
+        continue;
+      }
+
+      // Original vector row
+      if (opts.includeOriginal) {
+        rows.push({
+          id: logo.id,
+          rowKey: `${logo.id}-original`,
+          src: logo.previewUrl,
+          title: logo.name,
+          isVector: true,
+          originalFormat: logo.originalFormat,
+          fileSize: "—",
+          uploadedAt: logo.uploadedAt,
+          deliveryLabel: "Original",
+        });
+      }
+
+      // Pixel variant rows — one per format × size combo
+      if (opts.pixelFormats.length > 0 && opts.pixelSizes.length > 0) {
+        for (const fmt of opts.pixelFormats) {
+          for (const size of opts.pixelSizes) {
+            rows.push({
+              id: logo.id,
+              rowKey: `${logo.id}-${fmt}-${size}`,
+              src: logo.previewUrl,
+              title: logo.name,
+              isVector: false,
+              originalFormat: fmt.toUpperCase(),
+              fileSize: SIZE_LABELS[size] || size,
+              uploadedAt: logo.uploadedAt,
+              deliveryLabel: `${fmt} · ${size} (${SIZE_LABELS[size] || size})`,
+            });
+          }
+        }
+      }
+    } else {
+      const img = imageStore.getImages().find((i) => i.id === id);
+      if (!img) continue;
+      const ext = img.src.split(".").pop()?.toUpperCase() || "JPG";
+      rows.push({
+        id: img.id,
+        rowKey: img.id,
+        src: img.src,
+        title: img.title,
+        isVector: false,
+        originalFormat: ext,
+        fileSize: img.fileSize || "—",
+        uploadedAt: img.uploadedAt,
+      });
     }
-    const img = imageStore.getImages().find((i) => i.id === id);
-    if (!img) return null;
-    const ext = img.src.split(".").pop()?.toUpperCase() || "JPG";
-    return {
-      id: img.id,
-      src: img.src,
-      title: img.title,
-      isVector: false,
-      originalFormat: ext,
-      fileSize: img.fileSize || "—",
-      uploadedAt: img.uploadedAt,
-    };
-  }).filter(Boolean) as ResolvedAsset[];
+  }
+
+  return rows;
 }
 
 function formatDate(d: string) {
@@ -82,7 +138,7 @@ interface BucketDetailModalProps {
 export function BucketDetailModal({ bucket, open, onClose }: BucketDetailModalProps) {
   if (!bucket) return null;
 
-  const assets = resolveToDetailAssets(bucket.imageIds);
+  const rows = resolveToDetailRows(bucket.imageIds, bucket.assetOptions);
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -92,7 +148,7 @@ export function BucketDetailModal({ bucket, open, onClose }: BucketDetailModalPr
             <FolderOpen className="h-5 w-5 text-primary" />
             <DialogTitle>{bucket.name}</DialogTitle>
             <Badge variant="secondary" className="text-xs font-normal ml-1">
-              {assets.length} {assets.length === 1 ? "file" : "files"}
+              {rows.length} {rows.length === 1 ? "file" : "files"}
             </Badge>
           </div>
           {bucket.description && (
@@ -100,7 +156,7 @@ export function BucketDetailModal({ bucket, open, onClose }: BucketDetailModalPr
           )}
         </DialogHeader>
 
-        {assets.length === 0 ? (
+        {rows.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <FolderOpen className="h-8 w-8 mx-auto mb-2 opacity-40" />
             <p className="text-sm">This bucket is empty</p>
@@ -120,22 +176,25 @@ export function BucketDetailModal({ bucket, open, onClose }: BucketDetailModalPr
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {assets.map((asset) => (
-                  <TableRow key={asset.id}>
+                {rows.map((row) => (
+                  <TableRow key={row.rowKey}>
                     <TableCell className="p-2">
                       <div className="h-10 w-10 rounded border overflow-hidden bg-muted flex-shrink-0">
                         <img
-                          src={asset.src}
-                          alt={asset.title}
+                          src={row.src}
+                          alt={row.title}
                           className="h-full w-full object-cover"
                         />
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium text-sm truncate max-w-[200px]">
-                      {asset.title}
+                    <TableCell className="font-medium text-sm">
+                      <div className="truncate max-w-[200px]">{row.title}</div>
+                      {row.deliveryLabel && (
+                        <span className="text-xs text-muted-foreground">{row.deliveryLabel}</span>
+                      )}
                     </TableCell>
                     <TableCell>
-                      {asset.isVector ? (
+                      {row.isVector ? (
                         <Badge variant="outline" className="gap-1 text-xs font-normal">
                           <Diamond className="h-3 w-3" />
                           Vector
@@ -149,17 +208,17 @@ export function BucketDetailModal({ bucket, open, onClose }: BucketDetailModalPr
                     </TableCell>
                     <TableCell>
                       <span className="text-xs text-muted-foreground font-mono">
-                        {asset.originalFormat}
+                        {row.originalFormat}
                       </span>
                     </TableCell>
                     <TableCell>
                       <span className="text-xs text-muted-foreground">
-                        {asset.fileSize}
+                        {row.fileSize}
                       </span>
                     </TableCell>
                     <TableCell>
                       <span className="text-xs text-muted-foreground">
-                        {formatDate(asset.uploadedAt)}
+                        {formatDate(row.uploadedAt)}
                       </span>
                     </TableCell>
                     <TableCell className="p-1">
@@ -168,7 +227,7 @@ export function BucketDetailModal({ bucket, open, onClose }: BucketDetailModalPr
                         size="icon"
                         className="h-7 w-7 text-muted-foreground hover:text-destructive"
                         onClick={() => {
-                          removeImageFromBucket(bucket.id, asset.id);
+                          removeImageFromBucket(bucket.id, row.id);
                           toast.success("Removed from bucket");
                         }}
                       >

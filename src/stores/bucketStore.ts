@@ -1,10 +1,17 @@
 import { useSyncExternalStore } from "react";
 
+export interface AssetDeliveryOptions {
+  includeOriginal: boolean;
+  pixelFormats: string[];   // e.g. ["WebP", "PNG"]
+  pixelSizes: string[];     // e.g. ["S", "L", "XL"]
+}
+
 export interface Bucket {
   id: string;
   name: string;
   description: string;
   imageIds: string[];
+  assetOptions?: Record<string, AssetDeliveryOptions>; // keyed by asset id
   createdAt: string;
 }
 
@@ -61,12 +68,13 @@ export function useBuckets() {
   return useSyncExternalStore(subscribe, getSnapshot);
 }
 
-export function createBucket(name: string, description: string, imageIds: string[] = []): Bucket {
+export function createBucket(name: string, description: string, imageIds: string[] = [], assetOptions?: Record<string, AssetDeliveryOptions>): Bucket {
   const b: Bucket = {
     id: `bucket-${Date.now()}`,
     name,
     description,
     imageIds,
+    assetOptions,
     createdAt: new Date().toISOString().slice(0, 10),
   };
   buckets = [...buckets, b];
@@ -79,11 +87,12 @@ export function updateBucket(id: string, updates: Partial<Pick<Bucket, "name" | 
   emit();
 }
 
-export function addImagesToBucket(bucketId: string, imageIds: string[]) {
+export function addImagesToBucket(bucketId: string, imageIds: string[], newOptions?: Record<string, AssetDeliveryOptions>) {
   buckets = buckets.map((b) => {
     if (b.id !== bucketId) return b;
     const merged = new Set([...b.imageIds, ...imageIds]);
-    return { ...b, imageIds: [...merged] };
+    const mergedOptions = newOptions ? { ...b.assetOptions, ...newOptions } : b.assetOptions;
+    return { ...b, imageIds: [...merged], assetOptions: mergedOptions };
   });
   emit();
 }
@@ -91,7 +100,9 @@ export function addImagesToBucket(bucketId: string, imageIds: string[]) {
 export function removeImageFromBucket(bucketId: string, imageId: string) {
   buckets = buckets.map((b) => {
     if (b.id !== bucketId) return b;
-    return { ...b, imageIds: b.imageIds.filter((id) => id !== imageId) };
+    const opts = b.assetOptions ? { ...b.assetOptions } : undefined;
+    if (opts) delete opts[imageId];
+    return { ...b, imageIds: b.imageIds.filter((id) => id !== imageId), assetOptions: opts };
   });
   emit();
 }
