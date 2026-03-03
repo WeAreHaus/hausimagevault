@@ -8,6 +8,7 @@ import { UserRoleProvider } from "@/contexts/UserRoleContext";
 import Dashboard from "@/pages/Dashboard";
 import ImageLibrary from "@/pages/ImageLibrary";
 import ShareManager from "@/pages/ShareManager";
+import PublicPagePreview from "@/pages/PublicPagePreview";
 import BrandAssets from "@/pages/BrandAssets";
 import UploadFlow from "@/pages/UploadFlow";
 import Settings from "@/pages/Settings";
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/brand" element={<BrandAssets />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
+            <Route path="/public/:slug" element={<PublicPagePreview />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
