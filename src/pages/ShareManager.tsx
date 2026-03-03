@@ -8,9 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Share2, Plus, Download, Globe, FolderOpen, Pencil, Trash2, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Share2, Plus, Download, Globe, FolderOpen, Pencil, Trash2, X, ChevronDown, ChevronUp, Eye } from "lucide-react";
 import { ShareModal } from "@/components/ShareModal";
 import { BucketEditModal } from "@/components/BucketEditModal";
+import { BucketDetailModal } from "@/components/BucketDetailModal";
 import { toast } from "sonner";
 
 function logoToImageItem(logo: LogoAsset): ImageItem {
@@ -49,6 +50,7 @@ export default function ShareManager() {
   const [editBucket, setEditBucket] = useState<Bucket | null>(null);
   const [createMode, setCreateMode] = useState(false);
   const [shareBucket, setShareBucket] = useState<Bucket | null>(null);
+  const [detailBucket, setDetailBucket] = useState<Bucket | null>(null);
 
   const getImages = (ids: string[]) => resolveAssets(ids);
 
@@ -98,7 +100,7 @@ export default function ShareManager() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <FolderOpen className="h-4 w-4 text-primary flex-shrink-0" />
-                        <h3 className="font-semibold truncate">{bucket.name}</h3>
+                        <h3 className="font-semibold truncate cursor-pointer hover:text-primary transition-colors" onClick={() => setDetailBucket(bucket)}>{bucket.name}</h3>
                         <Badge variant="secondary" className="text-xs font-normal flex-shrink-0">
                           {bucket.imageIds.length} images
                         </Badge>
@@ -109,6 +111,9 @@ export default function ShareManager() {
                       <p className="text-xs text-muted-foreground mt-0.5">Created {bucket.createdAt}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailBucket(bucket)}>
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditBucket(bucket)}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
@@ -156,6 +161,7 @@ export default function ShareManager() {
           })}
 
           <BucketEditModal bucket={editBucket} isOpen={!!editBucket || createMode} onClose={() => { setEditBucket(null); setCreateMode(false); }} />
+          <BucketDetailModal bucket={detailBucket} open={!!detailBucket} onClose={() => setDetailBucket(null)} />
           {shareBucket && (
             <ShareModal
               open={!!shareBucket}
