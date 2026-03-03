@@ -1,32 +1,24 @@
 
 
-# Plan: Uppladdade bilder visas i biblioteket + sortering
+# Plan: Uppdatera Share Manager-vyn
 
-## Problem
+## Ändringar i `src/pages/ShareManager.tsx`
 
-`handleFinalize` i `UploadFlow.tsx` visar bara en toast — den lägger aldrig till bilderna i någon delad state. `ImageLibrary` läser direkt från den statiska `mockImages`-arrayen i `mockData.ts`, så uppladdade bilder syns aldrig.
+### 1. Ta bort "New Share Link"-knappen
+Remove the button + `showCreate` state from Quick Shares-tabben. Quick Shares skapas via bildbiblioteket, inte härifrån.
 
-## Lösning
+### 2. Lägg till beskrivningar under respektive tab
+- **Buckets tab**: Kort beskrivning typ: *"Buckets are reusable collections of images that you can organize, update, and share multiple times."*
+- **Quick Shares tab**: Kort beskrivning typ: *"Quick Shares are one-time share links created directly from the image library. They are not saved as collections."*
 
-Skapa en **imageStore** (samma mönster som `bucketStore`) som håller alla bilder — både mock-data och uppladdade. Persistera i `localStorage` så bilder överlever sidladdningar.
+Placeras som en `<p className="text-sm text-muted-foreground">` direkt under varje `TabsContent`-start.
 
-### Ändringar
+### 3. Lägg till "New Bucket"-knapp i Buckets-tabben
+En `<Button>` med `<Plus>` ikon och texten "New Bucket" placerad till höger, ovanför bucket-listan. Klick öppnar `BucketEditModal` med `bucket=null` (nytt läge). Kräver en liten uppdatering av `BucketEditModal` för att hantera create-läge (anropa `createBucket` från bucketStore istället för `updateBucket`).
 
-#### Ny fil: `src/stores/imageStore.ts`
-- Exportera en reaktiv store med `subscribe`/`getImages`-mönster (samma som bucketStore)
-- Initialt: ladda från `localStorage`, fallback till `mockImages`
-- `addImages(files: UploadedFile[])` — konverterar `UploadedFile` till `ImageItem` och lägger till i listan med `uploadedAt: new Date().toISOString()`
-- Persistera till `localStorage` vid varje mutation
+### 4. Uppdatera `src/components/BucketEditModal.tsx`
+Stöd för create-läge: om `bucket` är `null`, visa titeln "New Bucket" och anropa `createBucket(name, description)` vid spara istället för `updateBucket`.
 
-#### `src/pages/UploadFlow.tsx`
-- I `handleFinalize`: anropa `imageStore.addImages(files)` för att spara bilderna
-
-#### `src/pages/ImageLibrary.tsx`
-- Byt från statisk `mockImages`-import till `imageStore.getImages()` med `useSyncExternalStore` (eller subscribe-pattern)
-- Lägg till en **sorteringsväljare** (Select) i filter-raden med alternativen:
-  - "Newest first" (standard) — sorterar på `uploadedAt` desc
-  - "Oldest first" — sorterar på `uploadedAt` asc
-  - "Title A–Z"
-  - "Title Z–A"
-- Uppdatera `photographers`, `guides`, `groupIds`, `allTags` att deriveras från den dynamiska listan istället för statiska exporter
+### 5. Eventuell ny export i `src/stores/bucketStore.ts`
+Verifiera att `createBucket(name, description)` finns — om inte, skapa den (liknar befintlig `addBucket` men utan imageIds).
 
