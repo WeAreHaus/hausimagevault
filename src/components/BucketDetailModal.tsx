@@ -1,4 +1,4 @@
-import { mockImages } from "@/data/mockData";
+import { imageStore } from "@/stores/imageStore";
 import type { ImageItem } from "@/data/mockData";
 import { getLogosByIds, getLogoById, type LogoAsset } from "@/stores/logoStore";
 import { removeImageFromBucket } from "@/stores/bucketStore";
@@ -50,7 +50,7 @@ function resolveToDetailAssets(ids: string[]): ResolvedAsset[] {
         uploadedAt: logo.uploadedAt,
       };
     }
-    const img = mockImages.find((i) => i.id === id);
+    const img = imageStore.getImages().find((i) => i.id === id);
     if (!img) return null;
     const ext = img.src.split(".").pop()?.toUpperCase() || "JPG";
     return {
