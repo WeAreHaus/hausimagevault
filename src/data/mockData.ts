@@ -77,8 +77,6 @@ function generateMockImages(count: number): ImageItem[] {
     const month = (i % 12) + 1;
     const day = (i % 28) + 1;
     const tourDate = `2025-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const groupNum = String(i + 1).padStart(3, "0");
-
     // Pick 2-5 random tags
     const shuffled = [...tagPool].sort(() => 0.5 - Math.random());
     const tags = shuffled.slice(0, 2 + (i % 4));
