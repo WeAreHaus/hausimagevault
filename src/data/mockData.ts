@@ -18,7 +18,6 @@ export interface ImageItem {
   copyright: string;
   tourDate: string;
   groupId: string;
-  guide: string;
   description: string;
   altText: string;
   tags: string[];
