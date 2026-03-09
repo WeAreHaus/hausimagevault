@@ -4,10 +4,12 @@ export interface PublicPage {
   id: string;
   title: string;
   description: string;
-  imageIds: string[]; // image IDs + logo IDs (logo-*)
+  imageIds: string[];
   slug: string;
   published: boolean;
   createdAt: string;
+  downloadOption: "high-res" | "low-res" | "none";
+  watermark: boolean;
 }
 
 const STORAGE_KEY = "dam-public-pages";
@@ -74,13 +76,15 @@ export function createPublicPage(title: string, description: string): PublicPage
     slug,
     published: false,
     createdAt: new Date().toISOString().slice(0, 10),
+    downloadOption: "low-res",
+    watermark: false,
   };
   pages = [...pages, page];
   emit();
   return page;
 }
 
-export function updatePublicPage(id: string, updates: Partial<Pick<PublicPage, "title" | "description" | "slug" | "published">>) {
+export function updatePublicPage(id: string, updates: Partial<Pick<PublicPage, "title" | "description" | "slug" | "published" | "downloadOption" | "watermark">>) {
   pages = pages.map((p) => (p.id === id ? { ...p, ...updates } : p));
   emit();
 }

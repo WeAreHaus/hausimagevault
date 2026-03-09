@@ -41,6 +41,8 @@ export default function PublicPagePreview() {
   }
 
   const assets = resolveAssets(page.imageIds);
+  const dlOption = page.downloadOption ?? "low-res";
+  const showWatermark = page.watermark ?? false;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -61,13 +63,26 @@ export default function PublicPagePreview() {
             {assets.map((asset) => (
               <div key={asset.id} className="group relative rounded-lg border overflow-hidden bg-muted">
                 <img src={asset.src} alt={asset.title} className="w-full aspect-square object-cover" />
+
+                {/* Watermark overlay */}
+                {showWatermark && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+                    <span className="text-foreground/15 text-4xl font-bold uppercase tracking-widest rotate-[-30deg]">
+                      PREVIEW
+                    </span>
+                  </div>
+                )}
+
                 <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-3">
                   <p className="text-sm font-medium text-center truncate w-full">{asset.title}</p>
-                  <Button size="sm" variant="secondary" className="gap-1.5" asChild>
-                    <a href={asset.src} download={asset.title}>
-                      <Download className="h-3.5 w-3.5" /> Download
-                    </a>
-                  </Button>
+                  {dlOption !== "none" && (
+                    <Button size="sm" variant="secondary" className="gap-1.5" asChild>
+                      <a href={asset.src} download={asset.title}>
+                        <Download className="h-3.5 w-3.5" />
+                        {dlOption === "low-res" ? "Download (Low-res)" : "Download"}
+                      </a>
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
