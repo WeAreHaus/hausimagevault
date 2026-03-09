@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { ImageItem } from "@/data/mockData";
+import { imageStore } from "@/stores/imageStore";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Sparkles, Share2, Globe, Play } from "lucide-react";
+import { Sparkles, Share2, Globe, Play, X, Plus } from "lucide-react";
 import { ShareModal } from "@/components/ShareModal";
 import { PublishModal } from "@/components/PublishModal";
 import { toast } from "sonner";
@@ -19,13 +20,16 @@ interface Props {
 
 export function ImageDetailModal({ image, onClose }: Props) {
   const [altText, setAltText] = useState("");
+  const [license, setLicense] = useState("");
   const [showShare, setShowShare] = useState(false);
   const [showPublish, setShowPublish] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [newTag, setNewTag] = useState("");
 
   if (!image) return null;
 
   const currentAlt = altText || image.altText;
+  const currentLicense = license || image.license;
   const isVideo = image.mediaType === "video";
 
   const handleGenerateAlt = () => {
@@ -37,6 +41,22 @@ export function ImageDetailModal({ image, onClose }: Props) {
       setAiLoading(false);
       toast.success("AI alt text generated");
     }, 1500);
+  };
+
+  const handleRemoveTag = (tag: string) => {
+    const newTags = image.tags.filter((t) => t !== tag);
+    imageStore.updateImage(image.id, { tags: newTags });
+  };
+
+  const handleAddTag = () => {
+    const trimmed = newTag.trim().toLowerCase();
+    if (!trimmed) return;
+    if (image.tags.includes(trimmed)) {
+      toast.error("Tag already exists");
+      return;
+    }
+    imageStore.updateImage(image.id, { tags: [...image.tags, trimmed] });
+    setNewTag("");
   };
 
   return (
@@ -66,11 +86,37 @@ export function ImageDetailModal({ image, onClose }: Props) {
               <div className="flex flex-wrap gap-1.5">
                 {image.status.map((s) => <StatusBadge key={s} status={s} />)}
               </div>
-              <div className="flex flex-wrap gap-1">
-                {image.tags.map((t) => (
-                  <Badge key={t} variant="secondary" className="text-xs">{t}</Badge>
-                ))}
+
+              {/* Editable Tags */}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Tags</Label>
+                <div className="flex flex-wrap gap-1">
+                  {image.tags.map((t) => (
+                    <Badge key={t} variant="secondary" className="text-xs gap-1 pr-1">
+                      {t}
+                      <button
+                        onClick={() => handleRemoveTag(t)}
+                        className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-1.5">
+                  <Input
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    placeholder="Add tag…"
+                    className="h-8 text-sm"
+                    onKeyDown={(e) => e.key === "Enter" && handleAddTag()}
+                  />
+                  <Button variant="outline" size="sm" className="h-8 gap-1" onClick={handleAddTag} disabled={!newTag.trim()}>
+                    <Plus className="h-3 w-3" /> Add
+                  </Button>
+                </div>
               </div>
+
               <div className="text-xs text-muted-foreground space-y-0.5">
                 <p>{image.width} × {image.height}px · {image.fileSize}</p>
                 {isVideo && image.duration && <p>Duration: {image.duration}</p>}
@@ -88,6 +134,19 @@ export function ImageDetailModal({ image, onClose }: Props) {
                 <div>
                   <Label className="text-xs text-muted-foreground">Copyright</Label>
                   <Input value={image.copyright} readOnly className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">License</Label>
+                  <Textarea
+                    value={currentLicense}
+                    onChange={(e) => {
+                      setLicense(e.target.value);
+                      imageStore.updateImage(image.id, { license: e.target.value });
+                    }}
+                    placeholder="e.g. All rights reserved, CC BY 4.0…"
+                    className="mt-1 resize-none"
+                    rows={2}
+                  />
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Tour Date</Label>
