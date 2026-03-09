@@ -172,6 +172,27 @@ export default function ImageLibrary() {
         </Select>
       </div>
 
+      {/* Active tag badges */}
+      {selectedTags.size > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {[...selectedTags].map((tag) => (
+            <Badge key={tag} variant="default" className="gap-1 pl-2.5 pr-1.5 py-1">
+              {tag}
+              <button
+                onClick={() => {
+                  const next = new Set(selectedTags);
+                  next.delete(tag);
+                  setSelectedTags(next);
+                }}
+                className="ml-0.5 rounded-full hover:bg-primary-foreground/20 p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
+
       {/* Selection toolbar */}
       <div className="flex items-center justify-between border-b pb-3">
         <div className="flex items-center gap-3">
