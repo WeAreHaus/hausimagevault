@@ -64,7 +64,7 @@ export default function ImageLibrary() {
     });
 
     return result;
-  }, [allImages, search, filterPhotographer, filterTag, filterMeta, filterMedia, sortBy]);
+  }, [allImages, search, filterPhotographer, selectedTags, filterMeta, filterMedia, sortBy]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const safePage = Math.min(page, totalPages || 1);
