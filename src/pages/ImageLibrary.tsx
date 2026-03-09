@@ -24,7 +24,11 @@ export default function ImageLibrary() {
 
   const [search, setSearch] = useState("");
   const [filterPhotographer, setFilterPhotographer] = useState<string>("all");
-  Item | null>(null);
+  const [filterTag, setFilterTag] = useState<string>("all");
+  const [filterMeta, setFilterMeta] = useState<string>("all");
+  const [filterMedia, setFilterMedia] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -33,16 +37,12 @@ export default function ImageLibrary() {
 
   // Derive filter options from current data
   const photographers = useMemo(() => [...new Set(allImages.map((i) => i.photographer))].filter(Boolean).sort(), [allImages]);
-  
-  const groupIds = useMemo(() => [...new Set(allImages.map((i) => i.groupId))].filter(Boolean).sort(), [allImages]);
   const allTags = useMemo(() => [...new Set(allImages.flatMap((i) => i.tags))].sort(), [allImages]);
 
   const filtered = useMemo(() => {
     let result = allImages.filter((img) => {
       if (search && !img.title.toLowerCase().includes(search.toLowerCase()) && !img.tags.some((t) => t.includes(search.toLowerCase()))) return false;
       if (filterPhotographer !== "all" && img.photographer !== filterPhotographer) return false;
-      
-      if (filterGroup !== "all" && img.groupId !== filterGroup) return false;
       if (filterTag !== "all" && !img.tags.includes(filterTag)) return false;
       if (filterMedia !== "all" && img.mediaType !== filterMedia) return false;
       if (filterMeta === "missing-desc" && img.description.trim() !== "") return false;
@@ -53,7 +53,6 @@ export default function ImageLibrary() {
       return true;
     });
 
-    // Sort
     result = [...result].sort((a, b) => {
       switch (sortBy) {
         case "newest": return b.uploadedAt.localeCompare(a.uploadedAt);
@@ -65,15 +64,15 @@ export default function ImageLibrary() {
     });
 
     return result;
-  }, [allImages, search, filterPhotographer, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
+  }, [allImages, search, filterPhotographer, filterTag, filterMeta, filterMedia, sortBy]);
 
-  const Math.ceil(filtered.length / PAGE_SIZE);
-  const safePage = MatotalPages || 1);
-  const paginated = filtered.slice((safePage IZE, safePage * PAGE_SIZE);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const safePage = Math.min(page, totalPages || 1);
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  useMemo(() => { setPage(1); }, [search, filterPhotographer, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
+  useMemo(() => { setPage(1); }, [search, filterPhotographer, filterTag, filterMeta, filterMedia, sortBy]);
 
-  const hasFilters = terPhotographer !== "all" || filterGroup !== "all" || filterTag !== "all" |!== "all" || filterMedia !== "all";
+  const hasFilters = search || filterPhotographer !== "all" || filterTag !== "all" || filterMeta !== "all" || filterMedia !== "all";
 
   const clearFilters = () => {
     setSearch("");
@@ -157,13 +156,6 @@ export default function ImageLibrary() {
           <SelectContent>
             <SelectItem value="all">All Photographers</SelectItem>
             {photographers.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterGroup} onValueChange={setFilterGroup}>
-          <SelectTrigger className="w-[170px]"><SelectValue placeholder="Group" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Groups</SelectItem>
-            {groupIds.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filterTag} onValueChange={setFilterTag}>

@@ -52,7 +52,7 @@ export const imageStore = {
       photographer: f.photographer || "Unknown",
       copyright: f.copyright || "",
       tourDate: now.slice(0, 10),
-      groupId: "",
+      description: f.description || "",
       description: f.description || "",
       altText: f.altText || "",
       tags: f.tags ? f.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],

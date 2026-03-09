@@ -91,7 +91,7 @@ function generateMockImages(count: number): ImageItem[] {
       photographer,
       copyright: "© 2025 Nordic Tours AS",
       tourDate,
-      groupId: `GRP-2025-${groupNum}`,
+      description:
       description: `Tour photo ${i + 1}: ${title.toLowerCase()} captured on a guided Nordic tour.`,
       altText: `${title} – scenic Nordic tour photography`,
       tags,
