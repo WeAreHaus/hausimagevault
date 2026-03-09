@@ -16,6 +16,7 @@ export interface ImageItem {
   title: string;
   photographer: string;
   copyright: string;
+  license: string;
   tourDate: string;
   description: string;
   altText: string;
