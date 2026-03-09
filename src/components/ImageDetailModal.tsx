@@ -89,15 +89,9 @@ export function ImageDetailModal({ image, onClose }: Props) {
                   <Label className="text-xs text-muted-foreground">Copyright</Label>
                   <Input value={image.copyright} readOnly className="mt-1" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Tour Date</Label>
-                    <Input value={image.tourDate} readOnly className="mt-1" />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Group ID</Label>
-                    <Input value={image.groupId} readOnly className="mt-1" />
-                  </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Tour Date</Label>
+                  <Input value={image.tourDate} readOnly className="mt-1" />
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Description</Label>
