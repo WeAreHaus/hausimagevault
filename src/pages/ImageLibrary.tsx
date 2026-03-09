@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { StatusBadge } from "@/components/StatusBadge";
-import { Search, X, Share2, CheckSquare, Square, ChevronLeft, ChevronRight, FolderPlus, Globe, AlertTriangle, Play, Upload } from "lucide-react";
+import { Search, X, Share2, CheckSquare, Square, ChevronLeft, ChevronRight, FolderPlus, Globe, AlertTriangle, Play, Upload, Check, Pencil } from "lucide-react";
 import { TagFilterPopover } from "@/components/TagFilterPopover";
 import { ImageDetailModal } from "@/components/ImageDetailModal";
 import { ShareModal } from "@/components/ShareModal";
@@ -243,13 +243,30 @@ export default function ImageLibrary() {
           return (
             <div
               key={img.id}
-              className={`group relative rounded-lg border overflow-hidden bg-card transition-all hover:shadow-md ${
+              className={`group relative rounded-lg border overflow-hidden bg-card transition-all hover:shadow-md cursor-pointer ${
                 isSelected ? "ring-2 ring-primary border-primary" : ""
               }`}
+              onClick={() => toggleSelect(img.id)}
             >
-              <div className={`absolute top-2 left-2 z-10 transition-opacity ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
-                <Checkbox checked={isSelected} onCheckedChange={() => toggleSelect(img.id)} className="bg-background/80 backdrop-blur-sm" />
+              {/* Selection checkmark overlay */}
+              <div className={`absolute top-2 left-2 z-10 h-6 w-6 rounded-full flex items-center justify-center transition-all ${
+                isSelected
+                  ? "bg-primary text-primary-foreground scale-100 opacity-100"
+                  : "bg-background/70 backdrop-blur-sm scale-90 opacity-0 group-hover:opacity-80 group-hover:scale-100"
+              }`}>
+                <Check className="h-4 w-4" />
               </div>
+
+              {/* Edit button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); setSelectedImage(img); }}
+                className={`absolute bottom-[72px] right-2 z-10 h-7 w-7 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-sm hover:bg-background transition-opacity ${
+                  isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                }`}
+                title="Edit details"
+              >
+                <Pencil className="h-3.5 w-3.5 text-foreground" />
+              </button>
 
               <div className="absolute top-2 right-2 z-10 flex gap-1">
                 {missingMeta && (
@@ -264,29 +281,27 @@ export default function ImageLibrary() {
                 )}
               </div>
 
-              <button onClick={() => setSelectedImage(img)} className="w-full text-left focus:outline-none">
-                <div className="aspect-[4/3] overflow-hidden relative">
-                  <img src={img.src} alt={img.altText} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-                  {isVideo && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                      <div className="h-10 w-10 rounded-full bg-background/90 flex items-center justify-center shadow-md">
-                        <Play className="h-5 w-5 text-foreground ml-0.5" />
-                      </div>
-                      {img.duration && (
-                        <span className="absolute bottom-1.5 right-1.5 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded">{img.duration}</span>
-                      )}
+              <div className="aspect-[4/3] overflow-hidden relative">
+                <img src={img.src} alt={img.altText} className={`h-full w-full object-cover transition-all duration-300 group-hover:scale-105 ${isSelected ? "brightness-90" : ""}`} loading="lazy" />
+                {isVideo && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <div className="h-10 w-10 rounded-full bg-background/90 flex items-center justify-center shadow-md">
+                      <Play className="h-5 w-5 text-foreground ml-0.5" />
                     </div>
-                  )}
-                </div>
-                <div className="p-2.5 space-y-1.5">
-                  <p className="text-xs font-medium truncate">{img.title}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{img.photographer} · {img.tourDate}</p>
-                  <div className="flex flex-wrap gap-0.5">
-                    {img.status.map((s) => <StatusBadge key={s} status={s} />)}
-                    {isVideo && <Badge variant="secondary" className="text-[9px] px-1 py-0">Video</Badge>}
+                    {img.duration && (
+                      <span className="absolute bottom-1.5 right-1.5 text-[10px] bg-black/70 text-white px-1.5 py-0.5 rounded">{img.duration}</span>
+                    )}
                   </div>
+                )}
+              </div>
+              <div className="p-2.5 space-y-1.5">
+                <p className="text-xs font-medium truncate">{img.title}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{img.photographer} · {img.tourDate}</p>
+                <div className="flex flex-wrap gap-0.5">
+                  {img.status.map((s) => <StatusBadge key={s} status={s} />)}
+                  {isVideo && <Badge variant="secondary" className="text-[9px] px-1 py-0">Video</Badge>}
                 </div>
-              </button>
+              </div>
             </div>
           );
         })}
