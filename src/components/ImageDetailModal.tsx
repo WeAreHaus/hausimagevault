@@ -100,10 +100,6 @@ export function ImageDetailModal({ image, onClose }: Props) {
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Guide</Label>
-                  <Input value={image.guide} readOnly className="mt-1" />
-                </div>
-                <div>
                   <Label className="text-xs text-muted-foreground">Description</Label>
                   <Textarea value={image.description} readOnly className="mt-1 resize-none" rows={2} />
                 </div>

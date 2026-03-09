@@ -18,7 +18,6 @@ export interface ImageItem {
   copyright: string;
   tourDate: string;
   groupId: string;
-  guide: string;
   description: string;
   altText: string;
   tags: string[];
@@ -55,7 +54,6 @@ const titles = [
 ];
 
 const photographerList = ["Erik Nordmann", "Sven Larsen", "Anna Bjørnstad", "Marte Ødegaard", "Lars Kjeldsen"];
-const guideList = ["Ingrid Solberg", "Olav Hansen", "Magnus Vik", "Frida Holm", "Knut Berg"];
 const tagPool = [
   "fjord", "landscape", "cabin", "summer", "aurora", "winter", "arctic", "night", "church",
   "architecture", "autumn", "heritage", "hiking", "group", "mountain", "activity", "whale",
@@ -77,7 +75,6 @@ function generateMockImages(count: number): ImageItem[] {
     const src = baseSources[i % baseSources.length];
     const title = titles[i % titles.length] + (i >= titles.length ? ` #${Math.floor(i / titles.length) + 1}` : "");
     const photographer = photographerList[i % photographerList.length];
-    const guide = guideList[i % guideList.length];
     const month = (i % 12) + 1;
     const day = (i % 28) + 1;
     const tourDate = `2025-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -98,7 +95,6 @@ function generateMockImages(count: number): ImageItem[] {
       copyright: "© 2025 Nordic Tours AS",
       tourDate,
       groupId: `GRP-2025-${groupNum}`,
-      guide,
       description: `Tour photo ${i + 1}: ${title.toLowerCase()} captured on a guided Nordic tour.`,
       altText: `${title} – scenic Nordic tour photography`,
       tags,
@@ -143,6 +139,5 @@ export const mockShareLinks: ShareLink[] = [
 ];
 
 export const photographers = [...new Set(mockImages.map((i) => i.photographer))];
-export const guides = [...new Set(mockImages.map((i) => i.guide))];
 export const groupIds = [...new Set(mockImages.map((i) => i.groupId))];
 export const allTags = [...new Set(mockImages.flatMap((i) => i.tags))].sort();
