@@ -38,7 +38,7 @@ export default function ImageLibrary() {
 
   // Derive filter options from current data
   const photographers = useMemo(() => [...new Set(allImages.map((i) => i.photographer))].filter(Boolean).sort(), [allImages]);
-  const guides = useMemo(() => [...new Set(allImages.map((i) => i.guide))].filter(Boolean).sort(), [allImages]);
+  
   const groupIds = useMemo(() => [...new Set(allImages.map((i) => i.groupId))].filter(Boolean).sort(), [allImages]);
   const allTags = useMemo(() => [...new Set(allImages.flatMap((i) => i.tags))].sort(), [allImages]);
 
