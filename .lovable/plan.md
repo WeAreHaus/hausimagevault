@@ -1,26 +1,55 @@
 
 
-## Plan: Collapsible Accordion Settings
+# Plan: Public Access — ny tab i Share Manager
 
-Wrap the three settings sections (Tag Manager, WordPress Integration, User Management) in an `Accordion` component from the existing Radix accordion primitives.
+## Koncept
 
-### Changes
+En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
 
-**`src/pages/Settings.tsx`** — Replace the three standalone `<Card>` components with an `<Accordion type="multiple">` containing three `<AccordionItem>` entries. Each item's trigger shows the section icon + title + description, and the content renders the existing component internals.
+## Nya filer
 
-The existing components (`TagManager`, `WordPressIntegration`, `UserManagement`) each wrap themselves in a `<Card>` with `<CardHeader>` and `<CardContent>`. Two approaches:
+### `src/stores/publicPageStore.ts`
+Store (localStorage, samma mönster som bucketStore) för publika sidor:
+```ts
+interface PublicPage {
+  id: string;
+  title: string;
+  description: string;
+  imageIds: string[];   // bilder + logo-IDs
+  slug: string;         // genererad URL-slug
+  published: boolean;
+  createdAt: string;
+}
+```
+CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
 
-**Approach: Refactor Settings.tsx only** — Keep existing components as-is, but wrap each in an `AccordionItem` where:
-- `AccordionTrigger` shows the icon, title, and description (extracted/duplicated from each component's CardHeader)
-- `AccordionContent` renders the full component
+### `src/components/PublicPageEditModal.tsx`
+Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
 
-This is simpler but means the Card header info appears twice (once in trigger, once inside the component). Better approach: remove the `<Card>` wrapper from each component and let Settings.tsx provide the accordion structure.
+### `src/components/PublicPageDetailModal.tsx`
+Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
 
-**Chosen approach**: Modify all four files:
-1. **`src/pages/Settings.tsx`** — Import `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`. Wrap each section in an accordion item with appropriate titles/icons.
-2. **`src/components/settings/TagManager.tsx`** — Remove outer `<Card>`/`<CardHeader>`, export just the content (the card body).
-3. **`src/components/settings/WordPressIntegration.tsx`** — Same: remove `<Card>`/`<CardHeader>`, export content only. Keep the connection badge visible in the accordion trigger instead.
-4. **`src/components/settings/UserManagement.tsx`** — Same treatment.
+### `src/pages/PublicPagePreview.tsx`
+Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
 
-The accordion triggers will show each section's icon, title, and short description inline. `type="multiple"` allows opening several at once.
+## Ändringar i befintliga filer
+
+### `src/pages/ShareManager.tsx`
+- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
+- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
+- Knappar: skapa ny, redigera, förhandsgranska, ta bort
+
+### `src/App.tsx`
+- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
+
+## Filsammanfattning
+
+| Fil | Åtgärd |
+|-----|--------|
+| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
+| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
+| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
+| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
+| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
+| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
 
