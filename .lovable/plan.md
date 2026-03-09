@@ -1,55 +1,45 @@
 
 
-# Plan: Public Access — ny tab i Share Manager
+## Plan: Download & Watermark Settings for Public Pages
 
-## Koncept
+Add three new settings to the PublicPage data model and edit modal, and respect them on the public preview page.
 
-En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
+### Data Model — `src/stores/publicPageStore.ts`
 
-## Nya filer
-
-### `src/stores/publicPageStore.ts`
-Store (localStorage, samma mönster som bucketStore) för publika sidor:
+Add to `PublicPage` interface:
 ```ts
-interface PublicPage {
-  id: string;
-  title: string;
-  description: string;
-  imageIds: string[];   // bilder + logo-IDs
-  slug: string;         // genererad URL-slug
-  published: boolean;
-  createdAt: string;
-}
+downloadOption: "high-res" | "low-res" | "none";
+watermark: boolean;
 ```
-CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
 
-### `src/components/PublicPageEditModal.tsx`
-Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
+Defaults: `downloadOption: "low-res"`, `watermark: false`.
 
-### `src/components/PublicPageDetailModal.tsx`
-Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
+Update `createPublicPage` to set defaults. Update `updatePublicPage`'s type signature to allow these new fields.
 
-### `src/pages/PublicPagePreview.tsx`
-Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
+### Edit Modal — `src/components/PublicPageEditModal.tsx`
 
-## Ändringar i befintliga filer
+Add two new controls in a "Visitor permissions" section:
 
-### `src/pages/ShareManager.tsx`
-- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
-- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
-- Knappar: skapa ny, redigera, förhandsgranska, ta bort
+1. **Download** — RadioGroup with three options:
+   - High-resolution downloads
+   - Low-resolution only
+   - No downloads
 
-### `src/App.tsx`
-- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
+2. **Watermark** — Switch toggle: "Show watermark on images"
 
-## Filsammanfattning
+Wire state for both, populate from `page` in useEffect, pass to `updatePublicPage`/`createPublicPage`.
 
-| Fil | Åtgärd |
-|-----|--------|
-| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
-| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
-| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
-| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
-| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
-| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
+### Public Preview — `src/pages/PublicPagePreview.tsx`
+
+- If `downloadOption === "none"`: hide the Download button entirely
+- If `downloadOption === "low-res"`: keep download button but add `(Low-res)` label (in practice same src for now since we don't have real resolution variants, but the UI distinction is there)
+- If `watermark === true`: render a semi-transparent "PREVIEW" text overlay on each image via CSS
+
+### Files to change
+
+| File | Change |
+|------|--------|
+| `src/stores/publicPageStore.ts` | Add `downloadOption` and `watermark` to interface + defaults |
+| `src/components/PublicPageEditModal.tsx` | Add RadioGroup for download + Switch for watermark |
+| `src/pages/PublicPagePreview.tsx` | Conditionally show/hide download button, render watermark overlay |
 
