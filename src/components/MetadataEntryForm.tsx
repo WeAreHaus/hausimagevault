@@ -25,7 +25,7 @@ interface Props {
   onChange: (updated: UploadedFile) => void;
 }
 
-const metadataFields: (keyof UploadedFile)[] = ["title", "photographer", "copyright", "description", "altText"];
+const metadataFields: (keyof UploadedFile)[] = ["title", "photographer", "copyright", "license", "description", "altText"];
 
 export function countFilledFields(file: UploadedFile): number {
   return metadataFields.filter((f) => file[f].trim() !== "").length;
