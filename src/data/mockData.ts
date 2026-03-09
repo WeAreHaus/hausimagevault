@@ -17,7 +17,6 @@ export interface ImageItem {
   photographer: string;
   copyright: string;
   tourDate: string;
-  groupId: string;
   description: string;
   altText: string;
   tags: string[];
@@ -78,8 +77,6 @@ function generateMockImages(count: number): ImageItem[] {
     const month = (i % 12) + 1;
     const day = (i % 28) + 1;
     const tourDate = `2025-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    const groupNum = String(i + 1).padStart(3, "0");
-
     // Pick 2-5 random tags
     const shuffled = [...tagPool].sort(() => 0.5 - Math.random());
     const tags = shuffled.slice(0, 2 + (i % 4));
@@ -94,7 +91,6 @@ function generateMockImages(count: number): ImageItem[] {
       photographer,
       copyright: "© 2025 Nordic Tours AS",
       tourDate,
-      groupId: `GRP-2025-${groupNum}`,
       description: `Tour photo ${i + 1}: ${title.toLowerCase()} captured on a guided Nordic tour.`,
       altText: `${title} – scenic Nordic tour photography`,
       tags,
@@ -139,5 +135,4 @@ export const mockShareLinks: ShareLink[] = [
 ];
 
 export const photographers = [...new Set(mockImages.map((i) => i.photographer))];
-export const groupIds = [...new Set(mockImages.map((i) => i.groupId))];
 export const allTags = [...new Set(mockImages.flatMap((i) => i.tags))].sort();

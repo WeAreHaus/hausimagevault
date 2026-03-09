@@ -28,7 +28,6 @@ function logoToImageItem(logo: LogoAsset): ImageItem {
     photographer: "",
     copyright: "",
     tourDate: "",
-    groupId: "",
     description: "",
     altText: logo.name,
     tags: ["logo"],
