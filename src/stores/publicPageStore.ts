@@ -84,7 +84,7 @@ export function createPublicPage(title: string, description: string): PublicPage
   return page;
 }
 
-export function updatePublicPage(id: string, updates: Partial<Pick<PublicPage, "title" | "description" | "slug" | "published">>) {
+export function updatePublicPage(id: string, updates: Partial<Pick<PublicPage, "title" | "description" | "slug" | "published" | "downloadOption" | "watermark">>) {
   pages = pages.map((p) => (p.id === id ? { ...p, ...updates } : p));
   emit();
 }
