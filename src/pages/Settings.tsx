@@ -1,5 +1,6 @@
 import WordPressIntegration from "@/components/settings/WordPressIntegration";
 import UserManagement from "@/components/settings/UserManagement";
+import TagManager from "@/components/settings/TagManager";
 
 export default function Settings() {
   return (
@@ -9,6 +10,7 @@ export default function Settings() {
         <p className="text-muted-foreground mt-1">Configure integrations and app settings</p>
       </div>
 
+      <TagManager />
       <WordPressIntegration />
       <UserManagement />
     </div>

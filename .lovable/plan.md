@@ -1,55 +1,55 @@
 
 
-## Plan: License field, editable tags on images, and Tag Manager
+# Plan: Public Access — ny tab i Share Manager
 
-Three changes: add a license text field to the data model and detail modal, make tags editable per image, and create a Tag Manager page for bulk renaming/deleting tags.
+## Koncept
 
-### 1. License field
+En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
 
-**`src/data/mockData.ts`** — Add `license: string` to `ImageItem` interface. Set default `"All rights reserved"` in `generateMockImages`.
+## Nya filer
 
-**`src/components/ImageDetailModal.tsx`** — Add editable License textarea between Copyright and Tour Date.
+### `src/stores/publicPageStore.ts`
+Store (localStorage, samma mönster som bucketStore) för publika sidor:
+```ts
+interface PublicPage {
+  id: string;
+  title: string;
+  description: string;
+  imageIds: string[];   // bilder + logo-IDs
+  slug: string;         // genererad URL-slug
+  published: boolean;
+  createdAt: string;
+}
+```
+CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
 
-**`src/stores/imageStore.ts`** — Add `license: ""` to `addImages` mapping.
+### `src/components/PublicPageEditModal.tsx`
+Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
 
-**`src/components/MetadataEntryForm.tsx`** — Add License input field to the upload form.
+### `src/components/PublicPageDetailModal.tsx`
+Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
 
-**`src/pages/BrandAssets.tsx`** + **`src/pages/ShareManager.tsx`** — Add `license: ""` to any dummy ImageItem objects.
+### `src/pages/PublicPagePreview.tsx`
+Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
 
-### 2. Editable tags on ImageDetailModal
+## Ändringar i befintliga filer
 
-**`src/stores/imageStore.ts`** — Add `updateImage(id, partial)` method that patches an image and emits.
+### `src/pages/ShareManager.tsx`
+- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
+- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
+- Knappar: skapa ny, redigera, förhandsgranska, ta bort
 
-**`src/components/ImageDetailModal.tsx`** — Replace the read-only tag badges with:
-- Each tag shown as a Badge with an X button to remove it
-- An inline Input + "Add" button to type and add a new tag
-- Changes call `imageStore.updateImage(id, { tags })` to persist
+### `src/App.tsx`
+- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
 
-### 3. Tag Manager (Settings section)
+## Filsammanfattning
 
-**`src/components/settings/TagManager.tsx`** — New component showing:
-- List of all unique tags across all images, with usage count
-- Search/filter bar to find tags
-- **Rename**: inline edit or small modal — renames the tag across ALL images in the store
-- **Delete**: removes the tag from ALL images, with confirmation
-- **Merge**: select two tags, keep one name (stretch — can be done via rename + delete)
-
-**`src/pages/Settings.tsx`** — Import and render `<TagManager />` alongside existing settings sections.
-
-**`src/stores/imageStore.ts`** — Add two helper methods:
-- `renameTag(oldName, newName)` — iterates all images, replaces tag, emits
-- `deleteTag(tagName)` — iterates all images, removes tag, emits
-
-### Files summary
-
-| File | Change |
-|------|--------|
-| `src/data/mockData.ts` | Add `license` to interface + mock data |
-| `src/stores/imageStore.ts` | Add `updateImage`, `renameTag`, `deleteTag` methods; add `license` to `addImages` |
-| `src/components/ImageDetailModal.tsx` | Add license field, make tags editable (add/remove) |
-| `src/components/MetadataEntryForm.tsx` | Add license input |
-| `src/components/settings/TagManager.tsx` | New — tag list with search, rename, delete |
-| `src/pages/Settings.tsx` | Add `<TagManager />` |
-| `src/pages/BrandAssets.tsx` | Add `license: ""` to dummy object |
-| `src/pages/ShareManager.tsx` | Add `license: ""` to dummy object |
+| Fil | Åtgärd |
+|-----|--------|
+| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
+| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
+| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
+| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
+| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
+| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
 

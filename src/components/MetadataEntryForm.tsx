@@ -14,6 +14,7 @@ export interface UploadedFile {
   title: string;
   photographer: string;
   copyright: string;
+  license: string;
   description: string;
   altText: string;
   tags: string;
@@ -24,7 +25,7 @@ interface Props {
   onChange: (updated: UploadedFile) => void;
 }
 
-const metadataFields: (keyof UploadedFile)[] = ["title", "photographer", "copyright", "description", "altText"];
+const metadataFields: (keyof UploadedFile)[] = ["title", "photographer", "copyright", "license", "description", "altText"];
 
 export function countFilledFields(file: UploadedFile): number {
   return metadataFields.filter((f) => file[f].trim() !== "").length;
@@ -98,6 +99,16 @@ export function MetadataEntryForm({ file, onChange }: Props) {
             className="mt-1"
           />
         </div>
+      </div>
+
+      <div>
+        <Label className="text-xs text-muted-foreground">License</Label>
+        <Input
+          value={file.license}
+          onChange={(e) => update("license", e.target.value)}
+          placeholder="All rights reserved…"
+          className="mt-1"
+        />
       </div>
 
       <div>

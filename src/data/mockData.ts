@@ -16,6 +16,7 @@ export interface ImageItem {
   title: string;
   photographer: string;
   copyright: string;
+  license: string;
   tourDate: string;
   description: string;
   altText: string;
@@ -90,6 +91,7 @@ function generateMockImages(count: number): ImageItem[] {
       title,
       photographer,
       copyright: "© 2025 Nordic Tours AS",
+      license: "All rights reserved",
       tourDate,
       description: `Tour photo ${i + 1}: ${title.toLowerCase()} captured on a guided Nordic tour.`,
       altText: `${title} – scenic Nordic tour photography`,
