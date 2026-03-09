@@ -54,7 +54,6 @@ const titles = [
 ];
 
 const photographerList = ["Erik Nordmann", "Sven Larsen", "Anna Bjørnstad", "Marte Ødegaard", "Lars Kjeldsen"];
-const guideList = ["Ingrid Solberg", "Olav Hansen", "Magnus Vik", "Frida Holm", "Knut Berg"];
 const tagPool = [
   "fjord", "landscape", "cabin", "summer", "aurora", "winter", "arctic", "night", "church",
   "architecture", "autumn", "heritage", "hiking", "group", "mountain", "activity", "whale",
