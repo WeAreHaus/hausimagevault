@@ -158,13 +158,7 @@ export default function ImageLibrary() {
             {photographers.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filterTag} onValueChange={setFilterTag}>
-          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Tag" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tags</SelectItem>
-            {allTags.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <TagFilterPopover allImages={allImages} selectedTags={selectedTags} onSelectedTagsChange={setSelectedTags} />
         <Select value={filterMeta} onValueChange={setFilterMeta}>
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="Metadata" /></SelectTrigger>
           <SelectContent>
