@@ -43,7 +43,7 @@ export default function ImageLibrary() {
     let result = allImages.filter((img) => {
       if (search && !img.title.toLowerCase().includes(search.toLowerCase()) && !img.tags.some((t) => t.includes(search.toLowerCase()))) return false;
       if (filterPhotographer !== "all" && img.photographer !== filterPhotographer) return false;
-      if (filterTag !== "all" && !img.tags.includes(filterTag)) return false;
+      if (selectedTags.size > 0 && ![...selectedTags].every((t) => img.tags.includes(t))) return false;
       if (filterMedia !== "all" && img.mediaType !== filterMedia) return false;
       if (filterMeta === "missing-desc" && img.description.trim() !== "") return false;
       if (filterMeta === "missing-alt" && img.altText.trim() !== "") return false;
