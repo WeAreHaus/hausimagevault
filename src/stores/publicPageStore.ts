@@ -76,6 +76,8 @@ export function createPublicPage(title: string, description: string): PublicPage
     slug,
     published: false,
     createdAt: new Date().toISOString().slice(0, 10),
+    downloadOption: "low-res",
+    watermark: false,
   };
   pages = [...pages, page];
   emit();
