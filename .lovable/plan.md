@@ -1,55 +1,30 @@
 
 
-# Plan: Public Access — ny tab i Share Manager
+## Plan: Improved Image Card Selection & Edit UX
 
-## Koncept
+### Problem
+Currently the image card has a tiny checkbox (top-left, hidden until hover) for selection, and clicking anywhere else opens the detail/edit modal. The checkbox is hard to hit, and there's no clear visual separation between "select" and "edit" actions.
 
-En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
+### Solution
+Flip the primary action: **clicking the card image selects/deselects it**. Add a small **edit (pencil) button** that opens the detail modal.
 
-## Nya filer
+### Design
 
-### `src/stores/publicPageStore.ts`
-Store (localStorage, samma mönster som bucketStore) för publika sidor:
-```ts
-interface PublicPage {
-  id: string;
-  title: string;
-  description: string;
-  imageIds: string[];   // bilder + logo-IDs
-  slug: string;         // genererad URL-slug
-  published: boolean;
-  createdAt: string;
-}
-```
-CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
+**Clicking the image thumbnail area** → toggles selection (replaces the tiny checkbox as the primary interaction)
 
-### `src/components/PublicPageEditModal.tsx`
-Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
+**Edit button** → a small pencil icon button in the bottom-right corner of the image area (appears on hover, always visible when selected), opens `ImageDetailModal`
 
-### `src/components/PublicPageDetailModal.tsx`
-Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
+**Selection visual** → keep the existing `ring-2 ring-primary` border + add a checkmark overlay on the image when selected
 
-### `src/pages/PublicPagePreview.tsx`
-Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
+**Remove the Checkbox** — the entire image area becomes the click target for selection, making it much easier to hit
 
-## Ändringar i befintliga filer
+### Changes — single file
 
-### `src/pages/ShareManager.tsx`
-- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
-- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
-- Knappar: skapa ny, redigera, förhandsgranska, ta bort
-
-### `src/App.tsx`
-- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
-
-## Filsammanfattning
-
-| Fil | Åtgärd |
-|-----|--------|
-| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
-| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
-| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
-| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
-| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
-| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
+**`src/pages/ImageLibrary.tsx`** (lines 243-290):
+- Replace the outer `<button onClick={() => setSelectedImage(img)}>` wrapper — make the image `<div>` area clickable for selection (`toggleSelect`)
+- Remove the small `<Checkbox>` overlay
+- Add a visible check icon overlay on the image when selected (centered or top-left, larger than current checkbox)
+- Add a small edit button (Pencil icon) in the bottom-right of the image area that calls `setSelectedImage(img)` with `e.stopPropagation()`
+- Keep the info section below the image non-interactive (just displays metadata)
+- Import `Pencil` (or `PenLine`) and `Check` from lucide-react
 
