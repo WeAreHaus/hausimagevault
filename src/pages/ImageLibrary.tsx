@@ -72,12 +72,12 @@ export default function ImageLibrary() {
 
   useMemo(() => { setPage(1); }, [search, filterPhotographer, selectedTags, filterMeta, filterMedia, sortBy]);
 
-  const hasFilters = search || filterPhotographer !== "all" || filterTag !== "all" || filterMeta !== "all" || filterMedia !== "all";
+  const hasFilters = search || filterPhotographer !== "all" || selectedTags.size > 0 || filterMeta !== "all" || filterMedia !== "all";
 
   const clearFilters = () => {
     setSearch("");
     setFilterPhotographer("all");
-    setFilterTag("all");
+    setSelectedTags(new Set());
     setFilterMeta("all");
     setFilterMedia("all");
   };
