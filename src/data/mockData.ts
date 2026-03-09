@@ -75,7 +75,6 @@ function generateMockImages(count: number): ImageItem[] {
     const src = baseSources[i % baseSources.length];
     const title = titles[i % titles.length] + (i >= titles.length ? ` #${Math.floor(i / titles.length) + 1}` : "");
     const photographer = photographerList[i % photographerList.length];
-    const guide = guideList[i % guideList.length];
     const month = (i % 12) + 1;
     const day = (i % 28) + 1;
     const tourDate = `2025-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
