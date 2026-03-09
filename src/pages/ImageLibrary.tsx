@@ -78,7 +78,6 @@ export default function ImageLibrary() {
   const clearFilters = () => {
     setSearch("");
     setFilterPhotographer("all");
-    setFilterGroup("all");
     setFilterTag("all");
     setFilterMeta("all");
     setFilterMedia("all");
