@@ -14,6 +14,7 @@ export interface UploadedFile {
   title: string;
   photographer: string;
   copyright: string;
+  license: string;
   description: string;
   altText: string;
   tags: string;
