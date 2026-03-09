@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Search, X, Share2, CheckSquare, Square, ChevronLeft, ChevronRight, FolderPlus, Globe, AlertTriangle, Play, Upload } from "lucide-react";
+import { TagFilterPopover } from "@/components/TagFilterPopover";
 import { ImageDetailModal } from "@/components/ImageDetailModal";
 import { ShareModal } from "@/components/ShareModal";
 import { AddToBucketModal } from "@/components/AddToBucketModal";
