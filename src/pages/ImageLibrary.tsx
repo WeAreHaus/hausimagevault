@@ -46,7 +46,7 @@ export default function ImageLibrary() {
     let result = allImages.filter((img) => {
       if (search && !img.title.toLowerCase().includes(search.toLowerCase()) && !img.tags.some((t) => t.includes(search.toLowerCase()))) return false;
       if (filterPhotographer !== "all" && img.photographer !== filterPhotographer) return false;
-      if (filterGuide !== "all" && img.guide !== filterGuide) return false;
+      
       if (filterGroup !== "all" && img.groupId !== filterGroup) return false;
       if (filterTag !== "all" && !img.tags.includes(filterTag)) return false;
       if (filterMedia !== "all" && img.mediaType !== filterMedia) return false;
