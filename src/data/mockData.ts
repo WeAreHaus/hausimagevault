@@ -139,6 +139,5 @@ export const mockShareLinks: ShareLink[] = [
 ];
 
 export const photographers = [...new Set(mockImages.map((i) => i.photographer))];
-export const guides = [...new Set(mockImages.map((i) => i.guide))];
 export const groupIds = [...new Set(mockImages.map((i) => i.groupId))];
 export const allTags = [...new Set(mockImages.flatMap((i) => i.tags))].sort();

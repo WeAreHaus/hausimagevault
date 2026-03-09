@@ -165,13 +165,6 @@ export default function ImageLibrary() {
             {photographers.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filterGuide} onValueChange={setFilterGuide}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Guide" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Guides</SelectItem>
-            {guides.map((g) => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-          </SelectContent>
-        </Select>
         <Select value={filterGroup} onValueChange={setFilterGroup}>
           <SelectTrigger className="w-[170px]"><SelectValue placeholder="Group" /></SelectTrigger>
           <SelectContent>
