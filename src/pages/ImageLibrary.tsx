@@ -24,7 +24,6 @@ export default function ImageLibrary() {
 
   const [search, setSearch] = useState("");
   const [filterPhotographer, setFilterPhotographer] = useState<string>("all");
-  const [filterGuide, setFilterGuide] = useState<string>("all");
   const [filterGroup, setFilterGroup] = useState<string>("all");
   const [filterTag, setFilterTag] = useState<string>("all");
   const [filterMeta, setFilterMeta] = useState<string>("all");
