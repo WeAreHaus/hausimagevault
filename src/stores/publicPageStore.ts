@@ -4,10 +4,12 @@ export interface PublicPage {
   id: string;
   title: string;
   description: string;
-  imageIds: string[]; // image IDs + logo IDs (logo-*)
+  imageIds: string[];
   slug: string;
   published: boolean;
   createdAt: string;
+  downloadOption: "high-res" | "low-res" | "none";
+  watermark: boolean;
 }
 
 const STORAGE_KEY = "dam-public-pages";
