@@ -25,7 +25,6 @@ export default function ImageLibrary() {
   const [search, setSearch] = useState("");
   const [filterPhotographer, setFilterPhotographer] = useState<string>("all");
   ");
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
@@ -70,12 +69,12 @@ export default function ImageLibrary() {
   }, [allImages, search, filterPhotographer, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
 
   const Math.ceil(filtered.length / PAGE_SIZE);
-  const safePage = Math.min(page, totalPages || 1);
+  const safePage = MatotalPages || 1);
   const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   useMemo(() => { setPage(1); }, [search, filterPhotographer, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
 
-  const hasFilters = search || filterPhotographer !== "all" || filterGroup !== "all" || filterTag !== "all" || filterMeta !== "all" || filterMedia !== "all";
+  const hasFilters = terPhotographer !== "all" || filterGroup !== "all" || filterTag !== "all" || filterMeta !== "all" || filterMedia !== "all";
 
   const clearFilters = () => {
     setSearch("");
