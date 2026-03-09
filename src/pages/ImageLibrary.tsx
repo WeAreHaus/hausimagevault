@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Search, X, Share2, CheckSquare, Square, ChevronLeft, ChevronRight, FolderPlus, Globe, AlertTriangle, Play, Upload } from "lucide-react";
+import { TagFilterPopover } from "@/components/TagFilterPopover";
 import { ImageDetailModal } from "@/components/ImageDetailModal";
 import { ShareModal } from "@/components/ShareModal";
 import { AddToBucketModal } from "@/components/AddToBucketModal";
@@ -24,7 +25,7 @@ export default function ImageLibrary() {
 
   const [search, setSearch] = useState("");
   const [filterPhotographer, setFilterPhotographer] = useState<string>("all");
-  const [filterTag, setFilterTag] = useState<string>("all");
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [filterMeta, setFilterMeta] = useState<string>("all");
   const [filterMedia, setFilterMedia] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
@@ -37,13 +38,12 @@ export default function ImageLibrary() {
 
   // Derive filter options from current data
   const photographers = useMemo(() => [...new Set(allImages.map((i) => i.photographer))].filter(Boolean).sort(), [allImages]);
-  const allTags = useMemo(() => [...new Set(allImages.flatMap((i) => i.tags))].sort(), [allImages]);
 
   const filtered = useMemo(() => {
     let result = allImages.filter((img) => {
       if (search && !img.title.toLowerCase().includes(search.toLowerCase()) && !img.tags.some((t) => t.includes(search.toLowerCase()))) return false;
       if (filterPhotographer !== "all" && img.photographer !== filterPhotographer) return false;
-      if (filterTag !== "all" && !img.tags.includes(filterTag)) return false;
+      if (selectedTags.size > 0 && ![...selectedTags].every((t) => img.tags.includes(t))) return false;
       if (filterMedia !== "all" && img.mediaType !== filterMedia) return false;
       if (filterMeta === "missing-desc" && img.description.trim() !== "") return false;
       if (filterMeta === "missing-alt" && img.altText.trim() !== "") return false;
@@ -64,20 +64,20 @@ export default function ImageLibrary() {
     });
 
     return result;
-  }, [allImages, search, filterPhotographer, filterTag, filterMeta, filterMedia, sortBy]);
+  }, [allImages, search, filterPhotographer, selectedTags, filterMeta, filterMedia, sortBy]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const safePage = Math.min(page, totalPages || 1);
   const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  useMemo(() => { setPage(1); }, [search, filterPhotographer, filterTag, filterMeta, filterMedia, sortBy]);
+  useMemo(() => { setPage(1); }, [search, filterPhotographer, selectedTags, filterMeta, filterMedia, sortBy]);
 
-  const hasFilters = search || filterPhotographer !== "all" || filterTag !== "all" || filterMeta !== "all" || filterMedia !== "all";
+  const hasFilters = search || filterPhotographer !== "all" || selectedTags.size > 0 || filterMeta !== "all" || filterMedia !== "all";
 
   const clearFilters = () => {
     setSearch("");
     setFilterPhotographer("all");
-    setFilterTag("all");
+    setSelectedTags(new Set());
     setFilterMeta("all");
     setFilterMedia("all");
   };
@@ -158,13 +158,7 @@ export default function ImageLibrary() {
             {photographers.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={filterTag} onValueChange={setFilterTag}>
-          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Tag" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tags</SelectItem>
-            {allTags.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <TagFilterPopover allImages={allImages} selectedTags={selectedTags} onSelectedTagsChange={setSelectedTags} />
         <Select value={filterMeta} onValueChange={setFilterMeta}>
           <SelectTrigger className="w-[180px]"><SelectValue placeholder="Metadata" /></SelectTrigger>
           <SelectContent>
@@ -177,6 +171,27 @@ export default function ImageLibrary() {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Active tag badges */}
+      {selectedTags.size > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {[...selectedTags].map((tag) => (
+            <Badge key={tag} variant="default" className="gap-1 pl-2.5 pr-1.5 py-1">
+              {tag}
+              <button
+                onClick={() => {
+                  const next = new Set(selectedTags);
+                  next.delete(tag);
+                  setSelectedTags(next);
+                }}
+                className="ml-0.5 rounded-full hover:bg-primary-foreground/20 p-0.5"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
 
       {/* Selection toolbar */}
       <div className="flex items-center justify-between border-b pb-3">
