@@ -1,55 +1,38 @@
 
 
-# Plan: Public Access — ny tab i Share Manager
+## Plan: Multi-tag filter med sökbar, kategoriserad tag-picker
 
-## Koncept
+### Problem
+Med 40+ taggar i en enkel dropdown blir det svårt att hitta rätt. Användare behöver kunna välja **flera taggar** samtidigt och snabbt hitta dem.
 
-En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
+### Lösning: Searchable multi-select tag popover
 
-## Nya filer
+En popover-baserad komponent som ersätter den nuvarande single-select dropdown:
 
-### `src/stores/publicPageStore.ts`
-Store (localStorage, samma mönster som bucketStore) för publika sidor:
-```ts
-interface PublicPage {
-  id: string;
-  title: string;
-  description: string;
-  imageIds: string[];   // bilder + logo-IDs
-  slug: string;         // genererad URL-slug
-  published: boolean;
-  createdAt: string;
-}
-```
-CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
+1. **Trigger-knapp** visar "Tags" + antal valda som badge, t.ex. `Tags (3)`
+2. **Popover-innehåll**:
+   - Sökfält högst upp för att filtrera taggar i realtid
+   - Taggarna visas som klickbara chips/badges i ett wrappande grid (inte en lista) — mer kompakt, lättskummat
+   - Varje chip togglar on/off med tydlig visuell markering (fylld = aktiv)
+   - "Clear all" länk när taggar är valda
+3. **Valda taggar visas som badges** under filterfältet (eller inline) som går att klicka bort med X
 
-### `src/components/PublicPageEditModal.tsx`
-Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
+### Filterlogik
+- `filterTag: string` → `selectedTags: Set<string>`
+- En bild matchar om den har **alla** valda taggar (AND-logik) — ger progressiv insnävning
+- Popovern visar antal matchande bilder per tag (contextual counts)
 
-### `src/components/PublicPageDetailModal.tsx`
-Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
+### Tekniska ändringar
 
-### `src/pages/PublicPagePreview.tsx`
-Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
+| Fil | Ändring |
+|-----|---------|
+| `src/components/TagFilterPopover.tsx` | **Ny** — Popover med sökfält + chip-grid, multi-select, counts |
+| `src/pages/ImageLibrary.tsx` | Byt `filterTag: string` → `selectedTags: Set<string>`, uppdatera filterlogik till AND, ersätt tag-Select med `<TagFilterPopover>`, visa valda taggar som dismissable badges |
 
-## Ändringar i befintliga filer
-
-### `src/pages/ShareManager.tsx`
-- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
-- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
-- Knappar: skapa ny, redigera, förhandsgranska, ta bort
-
-### `src/App.tsx`
-- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
-
-## Filsammanfattning
-
-| Fil | Åtgärd |
-|-----|--------|
-| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
-| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
-| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
-| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
-| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
-| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
+### UI-detaljer
+- Byggs med befintliga `Popover`, `Input`, `Badge`, `Button` komponenter — inga nya dependencies
+- Chips i popovern: `Badge variant="outline"` (ej vald) / `Badge variant="default"` (vald)
+- Sökfältet filtrerar taggnamn med fuzzy contains-match
+- Varje tag-chip visar count: `fjord (12)`
+- Max-höjd på chip-arean med scroll vid behov
 
