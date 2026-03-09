@@ -27,6 +27,7 @@ function logoToImageItem(logo: LogoAsset): ImageItem {
     title: logo.name,
     photographer: "",
     copyright: "",
+    license: "",
     tourDate: "",
     description: "",
     altText: logo.name,

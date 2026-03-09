@@ -102,6 +102,16 @@ export function MetadataEntryForm({ file, onChange }: Props) {
       </div>
 
       <div>
+        <Label className="text-xs text-muted-foreground">License</Label>
+        <Input
+          value={file.license}
+          onChange={(e) => update("license", e.target.value)}
+          placeholder="All rights reserved…"
+          className="mt-1"
+        />
+      </div>
+
+      <div>
         <Label className="text-xs text-muted-foreground">Description</Label>
         <Textarea
           value={file.description}
