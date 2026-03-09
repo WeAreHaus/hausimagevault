@@ -78,7 +78,7 @@ export default function ImageLibrary() {
 
   useMemo(() => { setPage(1); }, [search, filterPhotographer, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
 
-  const hasFilters = search || filterPhotographer !== "all" || filterGuide !== "all" || filterGroup !== "all" || filterTag !== "all" || filterMeta !== "all" || filterMedia !== "all";
+  const hasFilters = search || filterPhotographer !== "all" || filterGroup !== "all" || filterTag !== "all" || filterMeta !== "all" || filterMedia !== "all";
 
   const clearFilters = () => {
     setSearch("");
