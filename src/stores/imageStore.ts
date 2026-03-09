@@ -51,6 +51,7 @@ export const imageStore = {
       title: f.title || f.name,
       photographer: f.photographer || "Unknown",
       copyright: f.copyright || "",
+      license: f.license || "",
       tourDate: now.slice(0, 10),
       description: f.description || "",
       altText: f.altText || "",
@@ -63,6 +64,31 @@ export const imageStore = {
       mediaType: "image" as const,
     }));
     images = [...newItems, ...images];
+    emit();
+  },
+
+  updateImage(id: string, partial: Partial<ImageItem>) {
+    images = images.map((img) => img.id === id ? { ...img, ...partial } : img);
+    emit();
+  },
+
+  renameTag(oldName: string, newName: string) {
+    const trimmed = newName.trim();
+    if (!trimmed || oldName === trimmed) return;
+    images = images.map((img) => {
+      if (!img.tags.includes(oldName)) return img;
+      const newTags = img.tags.map((t) => t === oldName ? trimmed : t);
+      // deduplicate
+      return { ...img, tags: [...new Set(newTags)] };
+    });
+    emit();
+  },
+
+  deleteTag(tagName: string) {
+    images = images.map((img) => {
+      if (!img.tags.includes(tagName)) return img;
+      return { ...img, tags: img.tags.filter((t) => t !== tagName) };
+    });
     emit();
   },
 };
