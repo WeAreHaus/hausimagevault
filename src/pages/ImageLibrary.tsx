@@ -76,7 +76,7 @@ export default function ImageLibrary() {
   const safePage = Math.min(page, totalPages || 1);
   const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  useMemo(() => { setPage(1); }, [search, filterPhotographer, filterGuide, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
+  useMemo(() => { setPage(1); }, [search, filterPhotographer, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
 
   const hasFilters = search || filterPhotographer !== "all" || filterGuide !== "all" || filterGroup !== "all" || filterTag !== "all" || filterMeta !== "all" || filterMedia !== "all";
 
