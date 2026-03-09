@@ -70,7 +70,7 @@ export default function ImageLibrary() {
     });
 
     return result;
-  }, [allImages, search, filterPhotographer, filterGuide, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
+  }, [allImages, search, filterPhotographer, filterGroup, filterTag, filterMeta, filterMedia, sortBy]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const safePage = Math.min(page, totalPages || 1);
