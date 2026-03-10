@@ -1,18 +1,20 @@
 import { mockImages } from "@/data/mockData";
 import type { ImageItem } from "@/data/mockData";
 import type { UploadedFile } from "@/components/MetadataEntryForm";
+import { getVaultKey, getCurrentVaultId, onVaultChange } from "@/stores/vaultScope";
 
-const STORAGE_KEY = "dam-images";
+const BASE_KEY = "dam-images";
 
 function loadImages(): ImageItem[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getVaultKey(BASE_KEY));
     if (raw) {
       const parsed = JSON.parse(raw) as ImageItem[];
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
   } catch {}
-  return mockImages;
+  // Only seed mock data for vault v1
+  return getCurrentVaultId() === "v1" ? mockImages : [];
 }
 
 let images: ImageItem[] = loadImages();
@@ -20,7 +22,7 @@ let listeners = new Set<() => void>();
 
 function persist() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(images));
+    localStorage.setItem(getVaultKey(BASE_KEY), JSON.stringify(images));
   } catch {}
 }
 
@@ -28,6 +30,12 @@ function emit() {
   persist();
   listeners.forEach((l) => l());
 }
+
+// Reload when vault changes
+onVaultChange(() => {
+  images = loadImages();
+  listeners.forEach((l) => l());
+});
 
 export const imageStore = {
   getImages(): ImageItem[] {
@@ -78,7 +86,6 @@ export const imageStore = {
     images = images.map((img) => {
       if (!img.tags.includes(oldName)) return img;
       const newTags = img.tags.map((t) => t === oldName ? trimmed : t);
-      // deduplicate
       return { ...img, tags: [...new Set(newTags)] };
     });
     emit();

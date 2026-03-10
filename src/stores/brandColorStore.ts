@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { getVaultKey, getCurrentVaultId, onVaultChange } from "@/stores/vaultScope";
 
 export interface BrandColor {
   id: string;
@@ -6,7 +7,7 @@ export interface BrandColor {
   value: string; // hex
 }
 
-const STORAGE_KEY = "brand-colors";
+const BASE_KEY = "brand-colors";
 
 const defaults: BrandColor[] = [
   { id: "bc-1", name: "Primary Teal", value: "#4d998f" },
@@ -15,22 +16,26 @@ const defaults: BrandColor[] = [
   { id: "bc-4", name: "Accent Gold", value: "#d4a843" },
 ];
 
+function load(): BrandColor[] {
+  try {
+    const raw = localStorage.getItem(getVaultKey(BASE_KEY));
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return getCurrentVaultId() === "v1" ? [...defaults] : [];
+}
+
 let colors: BrandColor[] = load();
 let listeners = new Set<() => void>();
 
-function load(): BrandColor[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [...defaults];
-  } catch {
-    return [...defaults];
-  }
-}
-
 function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(colors));
+  localStorage.setItem(getVaultKey(BASE_KEY), JSON.stringify(colors));
   listeners.forEach((l) => l());
 }
+
+onVaultChange(() => {
+  colors = load();
+  listeners.forEach((l) => l());
+});
 
 export function useBrandColors() {
   return useSyncExternalStore(

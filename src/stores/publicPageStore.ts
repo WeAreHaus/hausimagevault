@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { getVaultKey, onVaultChange } from "@/stores/vaultScope";
 
 export interface PublicPage {
   id: string;
@@ -12,11 +13,11 @@ export interface PublicPage {
   watermark: boolean;
 }
 
-const STORAGE_KEY = "dam-public-pages";
+const BASE_KEY = "dam-public-pages";
 
 function loadPages(): PublicPage[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getVaultKey(BASE_KEY));
     if (raw) return JSON.parse(raw);
   } catch {}
   return [];
@@ -26,7 +27,7 @@ let pages: PublicPage[] = loadPages();
 let listeners = new Set<() => void>();
 
 function persist() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(pages)); } catch {}
+  try { localStorage.setItem(getVaultKey(BASE_KEY), JSON.stringify(pages)); } catch {}
 }
 
 function emit() {
@@ -42,6 +43,11 @@ function subscribe(cb: () => void) {
 function getSnapshot(): PublicPage[] {
   return pages;
 }
+
+onVaultChange(() => {
+  pages = loadPages();
+  listeners.forEach((l) => l());
+});
 
 export function usePublicPages() {
   return useSyncExternalStore(subscribe, getSnapshot);

@@ -1,9 +1,10 @@
 import { useSyncExternalStore } from "react";
+import { getVaultKey, getCurrentVaultId, onVaultChange } from "@/stores/vaultScope";
 
 export interface AssetDeliveryOptions {
   includeOriginal: boolean;
-  pixelFormats: string[];   // e.g. ["WebP", "PNG"]
-  pixelSizes: string[];     // e.g. ["S", "L", "XL"]
+  pixelFormats: string[];
+  pixelSizes: string[];
 }
 
 export interface Bucket {
@@ -11,11 +12,11 @@ export interface Bucket {
   name: string;
   description: string;
   imageIds: string[];
-  assetOptions?: Record<string, AssetDeliveryOptions>; // keyed by asset id
+  assetOptions?: Record<string, AssetDeliveryOptions>;
   createdAt: string;
 }
 
-const STORAGE_KEY = "dam-buckets";
+const BASE_KEY = "dam-buckets";
 
 const defaultBuckets: Bucket[] = [
   {
@@ -36,18 +37,17 @@ const defaultBuckets: Bucket[] = [
 
 function loadBuckets(): Bucket[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getVaultKey(BASE_KEY));
     if (raw) return JSON.parse(raw);
   } catch {}
-  return defaultBuckets;
+  return getCurrentVaultId() === "v1" ? defaultBuckets : [];
 }
 
 let buckets: Bucket[] = loadBuckets();
-
 let listeners: Set<() => void> = new Set();
 
 function persist() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(buckets)); } catch {}
+  try { localStorage.setItem(getVaultKey(BASE_KEY), JSON.stringify(buckets)); } catch {}
 }
 
 function emit() {
@@ -63,6 +63,11 @@ function subscribe(cb: () => void) {
 function getSnapshot(): Bucket[] {
   return buckets;
 }
+
+onVaultChange(() => {
+  buckets = loadBuckets();
+  listeners.forEach((l) => l());
+});
 
 export function useBuckets() {
   return useSyncExternalStore(subscribe, getSnapshot);

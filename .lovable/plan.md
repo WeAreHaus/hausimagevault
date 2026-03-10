@@ -1,43 +1,55 @@
 
 
-## Plan: Vault-Scoped Data Isolation
+# Plan: Public Access — ny tab i Share Manager
 
-Right now all 5 content stores use a single hardcoded localStorage key each (e.g. `"dam-images"`), so all vaults share identical data. We need to namespace every key by vault ID.
+## Koncept
 
-### Approach
+En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
 
-Create a central vault scope module that all stores reference. When `activeVaultId` changes, all stores reload from their vault-specific localStorage key.
+## Nya filer
 
-### Changes
+### `src/stores/publicPageStore.ts`
+Store (localStorage, samma mönster som bucketStore) för publika sidor:
+```ts
+interface PublicPage {
+  id: string;
+  title: string;
+  description: string;
+  imageIds: string[];   // bilder + logo-IDs
+  slug: string;         // genererad URL-slug
+  published: boolean;
+  createdAt: string;
+}
+```
+CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
 
-**1. New file: `src/stores/vaultScope.ts`**
-- Tracks current vault ID (initially `"v1"`)
-- `getVaultKey(baseKey)` → returns `"baseKey-{vaultId}"` (e.g. `"dam-images-v1"`)
-- `setCurrentVault(id)` — updates vault ID and calls all registered reload callbacks
-- `onVaultChange(callback)` — registers a reload callback
+### `src/components/PublicPageEditModal.tsx`
+Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
 
-**2. Refactor 5 content stores** to use vault-scoped keys:
+### `src/components/PublicPageDetailModal.tsx`
+Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
 
-Each store (`imageStore`, `bucketStore`, `logoStore`, `brandColorStore`, `publicPageStore`) will:
-- Replace hardcoded `STORAGE_KEY` with `getVaultKey(BASE_KEY)` in both `load()` and `persist()`
-- Register an `onVaultChange` callback that reloads data from the new vault's storage and notifies all subscribers
-- Mock/default data only seeds for vault `"v1"`
+### `src/pages/PublicPagePreview.tsx`
+Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
 
-| Store | Base Key | Default data scope |
-|-------|----------|--------------------|
-| `imageStore` | `"dam-images"` | v1 only (mockImages) |
-| `bucketStore` | `"dam-buckets"` | v1 only (defaultBuckets) |
-| `logoStore` | `"dam-logos"` | Empty for all |
-| `brandColorStore` | `"brand-colors"` | v1 only (default colors) |
-| `publicPageStore` | `"dam-public-pages"` | Empty for all |
+## Ändringar i befintliga filer
 
-**3. `src/contexts/UserRoleContext.tsx`**
-- When `setActiveVaultId` is called, also call `setCurrentVault(id)` from vaultScope to trigger all store reloads
+### `src/pages/ShareManager.tsx`
+- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
+- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
+- Knappar: skapa ny, redigera, förhandsgranska, ta bort
 
-**4. `src/stores/vaultStore.ts`** — unchanged (global, not vault-scoped)
+### `src/App.tsx`
+- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
 
-### Result
-- Each vault gets completely independent content
-- Switching vaults reloads everything from vault-specific storage
-- Nordic Adventures starts empty, Acme Travel keeps existing data
+## Filsammanfattning
+
+| Fil | Åtgärd |
+|-----|--------|
+| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
+| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
+| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
+| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
+| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
+| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
 
