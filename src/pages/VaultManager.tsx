@@ -3,10 +3,15 @@ import { vaultStore, type Vault } from "@/stores/vaultStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Eye, ArrowRight, LayoutGrid, List, Building2 } from "lucide-react";
+import { Search, Plus, Eye, ArrowRight, LayoutGrid, List, Building2, Pencil, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useUserRole } from "@/contexts/UserRoleContext";
+import VaultEditModal from "@/components/VaultEditModal";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const statusColors: Record<Vault["status"], string> = {
   live: "bg-emerald-500/15 text-emerald-700 border-emerald-200",
@@ -19,13 +24,33 @@ export default function VaultManager() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { setRole, setActiveVaultId } = useUserRole();
+  const [view, setView] = useState<"grid" | "list">("grid");
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingVault, setEditingVault] = useState<Vault | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Vault | null>(null);
 
   const openVault = (vault: Vault) => {
     setActiveVaultId(vault.id);
     setRole("admin");
     navigate("/");
   };
-  const [view, setView] = useState<"grid" | "list">("grid");
+
+  const handleEdit = (vault: Vault) => {
+    setEditingVault(vault);
+    setEditModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    setEditingVault(null);
+    setEditModalOpen(true);
+  };
+
+  const handleDelete = () => {
+    if (deleteTarget) {
+      vaultStore.deleteVault(deleteTarget.id);
+      setDeleteTarget(null);
+    }
+  };
 
   const filtered = vaults.filter((v) =>
     v.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -39,7 +64,7 @@ export default function VaultManager() {
           <h1 className="text-2xl font-semibold tracking-tight">Vaults</h1>
           <p className="text-muted-foreground mt-1">Manage customer ImageVault instances</p>
         </div>
-        <Button className="gap-1.5">
+        <Button className="gap-1.5" onClick={handleCreate}>
           <Plus className="h-4 w-4" /> Create New Vault
         </Button>
       </div>
@@ -76,22 +101,16 @@ export default function VaultManager() {
                 </Badge>
               </div>
 
-              <div className="flex flex-wrap gap-1.5">
-                {vault.languages.map((l) => (
-                  <Badge key={l} variant="secondary" className="text-[10px] px-1.5 py-0">{l}</Badge>
-                ))}
-                {vault.integrations.map((i) => (
-                  <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0">{i}</Badge>
-                ))}
-              </div>
-
               <div className="flex items-center justify-between pt-1 border-t">
                 <span className="text-xs text-muted-foreground">
                   Updated {formatDistanceToNow(new Date(vault.updatedAt), { addSuffix: true })}
                 </span>
                 <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" title="Preview">
-                    <Eye className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit" onClick={() => handleEdit(vault)}>
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" title="Delete" onClick={() => setDeleteTarget(vault)}>
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                   <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs" onClick={() => openVault(vault)}>
                     Open <ArrowRight className="h-3 w-3" />
@@ -112,17 +131,18 @@ export default function VaultManager() {
                 <p className="font-medium truncate">{vault.name}</p>
                 <p className="text-sm text-muted-foreground truncate">{vault.domain}</p>
               </div>
-              <div className="hidden sm:flex flex-wrap gap-1">
-                {vault.languages.map((l) => (
-                  <Badge key={l} variant="secondary" className="text-[10px] px-1.5 py-0">{l}</Badge>
-                ))}
-              </div>
               <Badge variant="outline" className={`shrink-0 text-[11px] capitalize ${statusColors[vault.status]}`}>
                 {vault.status}
               </Badge>
               <span className="text-xs text-muted-foreground hidden md:block whitespace-nowrap">
                 {formatDistanceToNow(new Date(vault.updatedAt), { addSuffix: true })}
               </span>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(vault)}>
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteTarget(vault)}>
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
               <Button variant="ghost" size="sm" className="gap-1 text-xs shrink-0" onClick={() => openVault(vault)}>
                 Open <ArrowRight className="h-3 w-3" />
               </Button>
@@ -137,6 +157,25 @@ export default function VaultManager() {
           <p>No vaults found.</p>
         </div>
       )}
+
+      <VaultEditModal open={editModalOpen} onOpenChange={setEditModalOpen} vault={editingVault} />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete "{deleteTarget?.name}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this vault and all its data (images, buckets, shares, etc.). This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete Vault
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

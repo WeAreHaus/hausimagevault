@@ -1,35 +1,55 @@
 
 
-## Plan: Vault Card Cleanup, Edit/Delete/Create Functionality + Data Isolation Fixes
+# Plan: Public Access — ny tab i Share Manager
 
-### 1. Remove language/integration tags from vault cards
-Remove the `languages` and `integrations` badge rows from both grid and list views in `VaultManager.tsx`.
+## Koncept
 
-### 2. Create a VaultEditModal component
-New file `src/components/VaultEditModal.tsx` — a dialog for both creating and editing vaults:
-- Fields: Name, Domain
-- On create: calls `vaultStore.addVault()` with the name, domain, generated `avatarLetter` (first letter of name), and status `"draft"`
-- On edit: calls `vaultStore.updateVault()` with updated name/domain/avatarLetter
+En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
 
-### 3. Add delete vault with confirmation
-Add a delete button (trash icon) on each vault card. Uses an `AlertDialog` to confirm before calling `vaultStore.deleteVault(id)`. Also cleans up that vault's localStorage keys (`dam-images-{id}`, `dam-buckets-{id}`, etc.).
+## Nya filer
 
-### 4. Wire "Create New Vault" button
-Opens the VaultEditModal in create mode.
+### `src/stores/publicPageStore.ts`
+Store (localStorage, samma mönster som bucketStore) för publika sidor:
+```ts
+interface PublicPage {
+  id: string;
+  title: string;
+  description: string;
+  imageIds: string[];   // bilder + logo-IDs
+  slug: string;         // genererad URL-slug
+  published: boolean;
+  createdAt: string;
+}
+```
+CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
 
-### 5. Fix Dashboard to use vault-scoped data
-`Dashboard.tsx` currently imports `mockImages` and `mockShareLinks` directly instead of reading from `imageStore`. Refactor to use `useSyncExternalStore(imageStore.subscribe, imageStore.getSnapshot)` so it shows vault-specific data (empty for new vaults).
+### `src/components/PublicPageEditModal.tsx`
+Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
 
-### 6. Fix UserManagement to be vault-scoped
-`UserManagement.tsx` has hardcoded default users that show for every vault. Create a simple vault-scoped user store (or scope the defaults so only vault `"v1"` gets the mock users, others start empty).
+### `src/components/PublicPageDetailModal.tsx`
+Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
 
-### Files
+### `src/pages/PublicPagePreview.tsx`
+Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
 
-| File | Change |
-|------|--------|
-| `src/pages/VaultManager.tsx` | Remove tags, add edit/delete buttons, wire create modal |
-| `src/components/VaultEditModal.tsx` | New — create/edit vault dialog |
-| `src/pages/Dashboard.tsx` | Use imageStore instead of hardcoded mockImages |
-| `src/components/settings/UserManagement.tsx` | Vault-scope user data |
-| `src/stores/vaultStore.ts` | Remove `languages`/`integrations` from Vault interface |
+## Ändringar i befintliga filer
+
+### `src/pages/ShareManager.tsx`
+- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
+- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
+- Knappar: skapa ny, redigera, förhandsgranska, ta bort
+
+### `src/App.tsx`
+- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
+
+## Filsammanfattning
+
+| Fil | Åtgärd |
+|-----|--------|
+| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
+| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
+| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
+| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
+| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
+| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
 

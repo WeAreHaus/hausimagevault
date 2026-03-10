@@ -1,35 +1,18 @@
-import { mockImages, mockShareLinks } from "@/data/mockData";
+import { useSyncExternalStore } from "react";
+import { imageStore } from "@/stores/imageStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Images, Share2, Globe, Archive } from "lucide-react";
 
-const stats = [
-  {
-    label: "Total Images",
-    value: mockImages.length,
-    icon: Images,
-    color: "text-primary",
-  },
-  {
-    label: "Archived",
-    value: mockImages.filter((i) => i.status.includes("archived")).length,
-    icon: Archive,
-    color: "text-muted-foreground",
-  },
-  {
-    label: "Shared",
-    value: mockImages.filter((i) => i.status.includes("shared")).length,
-    icon: Share2,
-    color: "text-info",
-  },
-  {
-    label: "Published",
-    value: mockImages.filter((i) => i.status.includes("published")).length,
-    icon: Globe,
-    color: "text-success",
-  },
-];
-
 export default function Dashboard() {
+  const images = useSyncExternalStore(imageStore.subscribe, imageStore.getSnapshot);
+
+  const stats = [
+    { label: "Total Images", value: images.length, icon: Images, color: "text-primary" },
+    { label: "Archived", value: images.filter((i) => i.status.includes("archived")).length, icon: Archive, color: "text-muted-foreground" },
+    { label: "Shared", value: images.filter((i) => i.status.includes("shared")).length, icon: Share2, color: "text-info" },
+    { label: "Published", value: images.filter((i) => i.status.includes("published")).length, icon: Globe, color: "text-success" },
+  ];
+
   return (
     <div className="p-6 lg:p-8 space-y-8 animate-fade-in">
       <div>
@@ -51,19 +34,15 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      {images.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Recent Uploads</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {mockImages.slice(0, 4).map((img) => (
+            {images.slice(0, 4).map((img) => (
               <div key={img.id} className="flex items-center gap-3">
-                <img
-                  src={img.src}
-                  alt={img.altText}
-                  className="h-10 w-14 rounded object-cover"
-                />
+                <img src={img.src} alt={img.altText} className="h-10 w-14 rounded object-cover" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{img.title}</p>
                   <p className="text-xs text-muted-foreground">{img.photographer} · {img.tourDate}</p>
@@ -73,26 +52,14 @@ export default function Dashboard() {
             ))}
           </CardContent>
         </Card>
+      )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Active Share Links</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {mockShareLinks.map((link) => (
-              <div key={link.id} className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">{link.imageIds.length} image{link.imageIds.length > 1 ? "s" : ""}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {link.recipientEmails.join(", ")} · Expires {link.expiresAt}
-                  </p>
-                </div>
-                <Share2 className="h-4 w-4 text-info" />
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+      {images.length === 0 && (
+        <div className="text-center py-16 text-muted-foreground">
+          <Images className="h-10 w-10 mx-auto mb-3 opacity-40" />
+          <p>No images in this vault yet.</p>
+        </div>
+      )}
     </div>
   );
 }

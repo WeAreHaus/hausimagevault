@@ -3,17 +3,24 @@ export interface Vault {
   name: string;
   domain: string;
   status: "live" | "preview" | "draft";
-  languages: string[];
-  integrations: string[];
   updatedAt: string;
   avatarLetter: string;
 }
 
 const STORAGE_KEY = "dam-vaults";
 
+const VAULT_SCOPED_KEYS = [
+  "dam-images",
+  "dam-buckets",
+  "dam-logos",
+  "brand-colors",
+  "dam-public-pages",
+  "dam-users",
+];
+
 const mockVaults: Vault[] = [
-  { id: "v1", name: "Acme Travel", domain: "acmetravel.com", status: "live", languages: ["EN", "NO"], integrations: ["WordPress", "Shopify"], updatedAt: "2026-03-08T14:30:00Z", avatarLetter: "A" },
-  { id: "v2", name: "Nordic Adventures", domain: "nordicadv.no", status: "live", languages: ["NO", "EN", "DE"], integrations: ["WordPress"], updatedAt: "2026-03-07T09:15:00Z", avatarLetter: "N" },
+  { id: "v1", name: "Acme Travel", domain: "acmetravel.com", status: "live", updatedAt: "2026-03-08T14:30:00Z", avatarLetter: "A" },
+  { id: "v2", name: "Nordic Adventures", domain: "nordicadv.no", status: "live", updatedAt: "2026-03-07T09:15:00Z", avatarLetter: "N" },
 ];
 
 function load(): Vault[] {
@@ -21,11 +28,6 @@ function load(): Vault[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Clear stale data if it contains removed vaults
-      if (Array.isArray(parsed) && parsed.some((v: Vault) => ["v3", "v4", "v5"].includes(v.id))) {
-        localStorage.removeItem(STORAGE_KEY);
-        return mockVaults;
-      }
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
   } catch {}
@@ -50,6 +52,7 @@ export const vaultStore = {
     const newVault: Vault = { ...v, id: `v-${Date.now()}`, updatedAt: new Date().toISOString() };
     vaults = [newVault, ...vaults];
     emit();
+    return newVault;
   },
 
   updateVault(id: string, partial: Partial<Vault>) {
@@ -59,6 +62,10 @@ export const vaultStore = {
 
   deleteVault(id: string) {
     vaults = vaults.filter((v) => v.id !== id);
+    // Clean up all vault-scoped localStorage keys
+    VAULT_SCOPED_KEYS.forEach((key) => {
+      try { localStorage.removeItem(`${key}-${id}`); } catch {}
+    });
     emit();
   },
 };
