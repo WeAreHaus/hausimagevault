@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 
 import { StatusBadge } from "@/components/StatusBadge";
-import { Search, X, Share2, CheckSquare, Square, ChevronLeft, ChevronRight, FolderPlus, Globe, AlertTriangle, Play, Upload, Check, Pencil } from "lucide-react";
+import { Search, X, Share2, CheckSquare, Square, ChevronLeft, ChevronRight, FolderPlus, Globe, AlertTriangle, Play, Upload, Check, Pencil, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { TagFilterPopover } from "@/components/TagFilterPopover";
 import { ImageDetailModal } from "@/components/ImageDetailModal";
 import { ShareModal } from "@/components/ShareModal";
