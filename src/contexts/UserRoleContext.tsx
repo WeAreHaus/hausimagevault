@@ -1,10 +1,11 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 
-export type UserRole = "admin" | "supplier";
+export type UserRole = "owner" | "admin" | "supplier";
 
 interface UserRoleContextType {
   role: UserRole;
   setRole: (role: UserRole) => void;
+  isOwner: boolean;
   isAdmin: boolean;
   isSupplier: boolean;
 }
@@ -19,6 +20,7 @@ export function UserRoleProvider({ children }: { children: ReactNode }) {
       value={{
         role,
         setRole,
+        isOwner: role === "owner",
         isAdmin: role === "admin",
         isSupplier: role === "supplier",
       }}
