@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -8,22 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { UserPlus, Trash2 } from "lucide-react";
 import type { UserRole } from "@/contexts/UserRoleContext";
-
-interface MockUser {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  pending?: boolean;
-}
-
-const defaultUsers: MockUser[] = [
-  { id: "1", name: "Anna Lindgren", email: "anna@example.com", role: "admin" },
-  { id: "2", name: "Erik Holm", email: "erik@example.com", role: "supplier" },
-];
+import { userStore } from "@/stores/userStore";
 
 export default function UserManagement() {
-  const [users, setUsers] = useState<MockUser[]>(defaultUsers);
+  const users = useSyncExternalStore(userStore.subscribe, userStore.getSnapshot);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<UserRole>("supplier");
 
@@ -37,22 +25,18 @@ export default function UserManagement() {
       toast.error("This email has already been added");
       return;
     }
-    setUsers((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), name: email.split("@")[0], email, role: inviteRole, pending: true },
-    ]);
+    userStore.addUser({ name: email.split("@")[0], email, role: inviteRole, pending: true });
     setInviteEmail("");
     toast.success(`Invite sent to ${email}`);
   };
 
   const handleRemove = (id: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+    userStore.removeUser(id);
     toast.success("User removed");
   };
 
   return (
     <div className="space-y-6">
-      {/* Role descriptions */}
       <div className="rounded-md border bg-muted/50 p-4 space-y-1.5">
         <p className="text-xs text-muted-foreground">
           <span className="font-medium text-foreground">Admin</span> — Full access: manage images, buckets, shares, settings and users.
@@ -64,8 +48,10 @@ export default function UserManagement() {
 
       <Separator />
 
-      {/* User list */}
       <div className="space-y-2">
+        {users.length === 0 && (
+          <p className="text-sm text-muted-foreground py-4 text-center">No users in this vault yet.</p>
+        )}
         {users.map((user) => (
           <div key={user.id} className="flex items-center justify-between rounded-md border px-4 py-3">
             <div className="flex flex-col gap-0.5">
@@ -87,7 +73,6 @@ export default function UserManagement() {
 
       <Separator />
 
-      {/* Invite form */}
       <div className="space-y-3">
         <Label className="flex items-center gap-1.5 text-sm">
           <UserPlus className="h-3.5 w-3.5" /> Invite User
