@@ -93,7 +93,7 @@ export default function VaultManager() {
                   <Button variant="ghost" size="icon" className="h-8 w-8" title="Preview">
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs">
+                  <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs" onClick={() => openVault(vault)}>
                     Open <ArrowRight className="h-3 w-3" />
                   </Button>
                 </div>
