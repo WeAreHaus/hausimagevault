@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { setCurrentVault } from "@/stores/vaultScope";
 
 export type UserRole = "owner" | "admin" | "supplier";
 
@@ -16,7 +17,14 @@ const UserRoleContext = createContext<UserRoleContextType | undefined>(undefined
 
 export function UserRoleProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<UserRole>("admin");
-  const [activeVaultId, setActiveVaultId] = useState<string | null>("v1");
+  const [activeVaultId, setActiveVaultIdState] = useState<string | null>("v1");
+
+  const setActiveVaultId = useCallback((id: string | null) => {
+    setActiveVaultIdState(id);
+    if (id) {
+      setCurrentVault(id);
+    }
+  }, []);
 
   return (
     <UserRoleContext.Provider
