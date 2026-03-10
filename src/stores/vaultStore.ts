@@ -16,6 +16,7 @@ const VAULT_SCOPED_KEYS = [
   "brand-colors",
   "dam-public-pages",
   "dam-users",
+  "dam-shares",
 ];
 
 const mockVaults: Vault[] = [
