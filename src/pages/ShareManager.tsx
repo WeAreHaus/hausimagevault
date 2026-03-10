@@ -53,6 +53,7 @@ function resolveAssets(ids: string[]): ImageItem[] {
 export default function ShareManager() {
   const buckets = useBuckets();
   const publicPages = usePublicPages();
+  const shareLinks = useShares();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [editBucket, setEditBucket] = useState<Bucket | null>(null);
   const [createMode, setCreateMode] = useState(false);
