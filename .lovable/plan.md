@@ -1,55 +1,25 @@
 
 
-# Plan: Public Access — ny tab i Share Manager
+## Plan: Add Tag Creation & Assignment in Image Library
 
-## Koncept
+The TagFilterPopover currently only filters — it cannot create new tags or assign them to images. We need to enhance it so users can:
 
-En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
+1. **Create new tags** by typing a name and pressing Enter/clicking a button when no match exists
+2. **Assign tags to selected images** from the popover (bulk tagging)
 
-## Nya filer
+### Changes
 
-### `src/stores/publicPageStore.ts`
-Store (localStorage, samma mönster som bucketStore) för publika sidor:
-```ts
-interface PublicPage {
-  id: string;
-  title: string;
-  description: string;
-  imageIds: string[];   // bilder + logo-IDs
-  slug: string;         // genererad URL-slug
-  published: boolean;
-  createdAt: string;
-}
-```
-CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
+**`src/components/TagFilterPopover.tsx`**
+- Add an input field at the top that doubles as search + create. When the typed tag doesn't exist, show a "Create & add [tag]" button
+- When images are selected (pass `selectedIds` as prop), toggling a tag assigns/removes it from those images via `imageStore.updateImage`
+- When no images are selected, it behaves as a filter (current behavior)
+- Show a visual indicator (checkmark) next to tags that are already on all selected images
 
-### `src/components/PublicPageEditModal.tsx`
-Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
+**`src/pages/ImageLibrary.tsx`**
+- Pass `selectedIds` to `TagFilterPopover` so it knows when to switch between filter mode and assign mode
 
-### `src/components/PublicPageDetailModal.tsx`
-Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
-
-### `src/pages/PublicPagePreview.tsx`
-Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
-
-## Ändringar i befintliga filer
-
-### `src/pages/ShareManager.tsx`
-- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
-- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
-- Knappar: skapa ny, redigera, förhandsgranska, ta bort
-
-### `src/App.tsx`
-- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
-
-## Filsammanfattning
-
-| Fil | Åtgärd |
-|-----|--------|
-| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
-| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
-| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
-| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
-| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
-| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
+### Behavior
+- **No selection**: popover works as filter (current)
+- **Images selected**: popover works as tag assigner — toggling a tag adds/removes it from selected images
+- **Create**: typing a new tag name + pressing Enter creates the tag and assigns it to selected images (or adds it to the filter if none selected)
 
