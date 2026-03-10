@@ -1,4 +1,4 @@
-import { LayoutDashboard, Images, Share2, FolderOpen, Palette, Camera, Upload, ShieldCheck, Truck, Settings2 } from "lucide-react";
+import { LayoutDashboard, Images, Share2, Palette, Camera, Upload, ShieldCheck, Truck, Settings2, Building2, Users, Crown } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useUserRole } from "@/contexts/UserRoleContext";
@@ -15,6 +15,12 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+
+const ownerItems = [
+  { title: "Vaults", url: "/vaults", icon: Building2 },
+  { title: "Users", url: "/users", icon: Users },
+  { title: "Platform Settings", url: "/platform-settings", icon: Settings2 },
+];
 
 const adminItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -34,9 +40,10 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
-  const { role, setRole, isAdmin } = useUserRole();
+  const { role, setRole, isAdmin, isOwner } = useUserRole();
 
-  const items = isAdmin ? adminItems : supplierItems;
+  const items = isOwner ? ownerItems : isAdmin ? adminItems : supplierItems;
+  const label = isOwner ? "ImageVault Platform" : "ImageVault";
 
   return (
     <Sidebar collapsible="icon">
@@ -45,7 +52,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>
             <div className="flex items-center gap-2">
               <Camera className="h-4 w-4 text-primary" />
-              {!collapsed && <span className="font-semibold tracking-tight">ImageVault</span>}
+              {!collapsed && <span className="font-semibold tracking-tight">{label}</span>}
             </div>
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -73,11 +80,14 @@ export function AppSidebar() {
         {!collapsed && (
           <div className="px-3 py-2 space-y-1.5">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Role</p>
-            <Select value={role} onValueChange={(v) => setRole(v as "admin" | "supplier")}>
+            <Select value={role} onValueChange={(v) => setRole(v as "owner" | "admin" | "supplier")}>
               <SelectTrigger className="h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="owner">
+                  <span className="flex items-center gap-1.5"><Crown className="h-3 w-3" /> Owner / Platform</span>
+                </SelectItem>
                 <SelectItem value="admin">
                   <span className="flex items-center gap-1.5"><ShieldCheck className="h-3 w-3" /> Admin / Editor</span>
                 </SelectItem>

@@ -12,8 +12,8 @@ import PublicPagePreview from "@/pages/PublicPagePreview";
 import BrandAssets from "@/pages/BrandAssets";
 import UploadFlow from "@/pages/UploadFlow";
 import Settings from "@/pages/Settings";
+import VaultManager from "@/pages/VaultManager";
 import NotFound from "./pages/NotFound";
-
 
 const queryClient = new QueryClient();
 
@@ -32,6 +32,9 @@ const App = () => (
               <Route path="/shares" element={<ShareManager />} />
               <Route path="/brand" element={<BrandAssets />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/vaults" element={<VaultManager />} />
+              <Route path="/users" element={<div className="p-8"><h1 className="text-2xl font-semibold">Users</h1><p className="text-muted-foreground mt-2">User management coming soon.</p></div>} />
+              <Route path="/platform-settings" element={<div className="p-8"><h1 className="text-2xl font-semibold">Platform Settings</h1><p className="text-muted-foreground mt-2">Platform configuration coming soon.</p></div>} />
             </Route>
             <Route path="/public/:slug" element={<PublicPagePreview />} />
             <Route path="*" element={<NotFound />} />
