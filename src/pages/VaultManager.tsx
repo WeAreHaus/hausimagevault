@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Eye, ArrowRight, LayoutGrid, List, Building2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { useUserRole } from "@/contexts/UserRoleContext";
 
 const statusColors: Record<Vault["status"], string> = {
   live: "bg-emerald-500/15 text-emerald-700 border-emerald-200",
