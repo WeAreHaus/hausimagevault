@@ -1,6 +1,6 @@
 import { LayoutDashboard, Images, Share2, Palette, Camera, Upload, ShieldCheck, Truck, Settings2, Building2, Users, Crown } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useUserRole } from "@/contexts/UserRoleContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
