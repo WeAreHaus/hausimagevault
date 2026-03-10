@@ -24,11 +24,15 @@ interface BrandAsset {
   dimensions?: string;
 }
 
-const mockAssets: BrandAsset[] = [
+const mockAssetsV1: BrandAsset[] = [
   { id: "ba-4", name: "Favicon 32×32", category: "favicon", src: "/favicon.ico", format: "ICO", dimensions: "32×32" },
   { id: "ba-5", name: "Favicon 180×180", category: "favicon", src: "/placeholder.svg", format: "PNG", dimensions: "180×180" },
   { id: "ba-10", name: "DM Sans", category: "font", value: "DM Sans" },
 ];
+
+function getMockAssets(): BrandAsset[] {
+  return getCurrentVaultId() === "v1" ? mockAssetsV1 : [];
+}
 
 const categories = ["favicon", "font"] as const;
 const categoryLabels: Record<string, string> = {
