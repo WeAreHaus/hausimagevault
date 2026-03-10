@@ -40,7 +40,14 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
   const { role, setRole, isAdmin, isOwner } = useUserRole();
+
+  const handleRoleChange = (v: string) => {
+    setRole(v as UserRole);
+    if (v === "owner") navigate("/vaults");
+    else navigate("/");
+  };
 
   const items = isOwner ? ownerItems : isAdmin ? adminItems : supplierItems;
   const label = isOwner ? "ImageVault Platform" : "ImageVault";
