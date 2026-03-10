@@ -14,9 +14,6 @@ const STORAGE_KEY = "dam-vaults";
 const mockVaults: Vault[] = [
   { id: "v1", name: "Acme Travel", domain: "acmetravel.com", status: "live", languages: ["EN", "NO"], integrations: ["WordPress", "Shopify"], updatedAt: "2026-03-08T14:30:00Z", avatarLetter: "A" },
   { id: "v2", name: "Nordic Adventures", domain: "nordicadv.no", status: "live", languages: ["NO", "EN", "DE"], integrations: ["WordPress"], updatedAt: "2026-03-07T09:15:00Z", avatarLetter: "N" },
-  { id: "v3", name: "Fjord Experiences", domain: "fjordexp.com", status: "preview", languages: ["EN"], integrations: [], updatedAt: "2026-03-05T11:00:00Z", avatarLetter: "F" },
-  { id: "v4", name: "Arctic Lights", domain: "arcticlights.no", status: "draft", languages: ["NO"], integrations: ["WordPress"], updatedAt: "2026-03-01T16:45:00Z", avatarLetter: "A" },
-  { id: "v5", name: "Mountain Lodge Media", domain: "mtlodge.com", status: "live", languages: ["EN", "NO"], integrations: ["WordPress", "Cloudflare"], updatedAt: "2026-03-09T08:20:00Z", avatarLetter: "M" },
 ];
 
 function load(): Vault[] {
