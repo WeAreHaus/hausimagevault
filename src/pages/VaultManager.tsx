@@ -123,7 +123,7 @@ export default function VaultManager() {
               <span className="text-xs text-muted-foreground hidden md:block whitespace-nowrap">
                 {formatDistanceToNow(new Date(vault.updatedAt), { addSuffix: true })}
               </span>
-              <Button variant="ghost" size="sm" className="gap-1 text-xs shrink-0">
+              <Button variant="ghost" size="sm" className="gap-1 text-xs shrink-0" onClick={() => openVault(vault)}>
                 Open <ArrowRight className="h-3 w-3" />
               </Button>
             </div>
