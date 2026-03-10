@@ -12,6 +12,7 @@ import { AddToBucketModal } from "@/components/AddToBucketModal";
 import { ShareModal } from "@/components/ShareModal";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { ImageItem } from "@/data/mockData";
+import { getCurrentVaultId } from "@/stores/vaultScope";
 
 interface BrandAsset {
   id: string;
