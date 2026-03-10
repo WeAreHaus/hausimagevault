@@ -338,7 +338,7 @@ export default function BrandAssets() {
 
       {/* === OTHER CATEGORIES === */}
       {categories.map((cat) => {
-        const assets = mockAssets.filter((a) => a.category === cat);
+        const assets = getMockAssets().filter((a) => a.category === cat);
         if (assets.length === 0) return null;
 
         return (

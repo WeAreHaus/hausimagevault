@@ -189,7 +189,14 @@ export default function ShareManager() {
             Quick Shares are one-time share links created directly from the image library. They are not saved as collections.
           </p>
 
-          {mockShareLinks.map((link) => {
+          {shareLinks.length === 0 && (
+            <div className="text-center py-16 text-muted-foreground">
+              <Share2 className="h-10 w-10 mx-auto mb-3 opacity-40" />
+              <p>No quick shares yet. Select images in the library and share them.</p>
+            </div>
+          )}
+
+          {shareLinks.map((link) => {
             const images = getImages(link.imageIds);
             return (
               <Card key={link.id}>
