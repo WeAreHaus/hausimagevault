@@ -21,6 +21,11 @@ function load(): Vault[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      // Clear stale data if it contains removed vaults
+      if (Array.isArray(parsed) && parsed.some((v: Vault) => ["v3", "v4", "v5"].includes(v.id))) {
+        localStorage.removeItem(STORAGE_KEY);
+        return mockVaults;
+      }
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
   } catch {}
