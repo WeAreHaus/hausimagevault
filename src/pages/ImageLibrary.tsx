@@ -232,6 +232,27 @@ export default function ImageLibrary() {
             <Button size="sm" onClick={() => setShowBatchPublish(true)} className="gap-1.5">
               <Globe className="h-3.5 w-3.5" /> Publish to WP
             </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" className="gap-1.5">
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {selectedIds.size} image{selectedIds.size !== 1 ? "s" : ""}?</AlertDialogTitle>
+                  <AlertDialogDescription>This action cannot be undone. The selected images will be permanently removed.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => {
+                    imageStore.deleteImages([...selectedIds]);
+                    toast.success(`Deleted ${selectedIds.size} image${selectedIds.size !== 1 ? "s" : ""}`);
+                    setSelectedIds(new Set());
+                  }}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       )}

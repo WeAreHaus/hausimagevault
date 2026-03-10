@@ -91,4 +91,10 @@ export const imageStore = {
     });
     emit();
   },
+
+  deleteImages(ids: string[]) {
+    const idSet = new Set(ids);
+    images = images.filter((img) => !idSet.has(img.id));
+    emit();
+  },
 };
