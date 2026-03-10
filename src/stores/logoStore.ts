@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { getVaultKey, onVaultChange } from "@/stores/vaultScope";
 
 export interface LogoAsset {
   id: string;
@@ -10,11 +11,11 @@ export interface LogoAsset {
   dimensions?: string;
 }
 
-const STORAGE_KEY = "dam-logos";
+const BASE_KEY = "dam-logos";
 
 function load(): LogoAsset[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getVaultKey(BASE_KEY));
     if (raw) {
       const parsed = JSON.parse(raw) as LogoAsset[];
       if (Array.isArray(parsed)) return parsed;
@@ -28,7 +29,7 @@ const listeners = new Set<() => void>();
 
 function persist() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(logos));
+    localStorage.setItem(getVaultKey(BASE_KEY), JSON.stringify(logos));
   } catch {}
 }
 
@@ -36,6 +37,11 @@ function emit() {
   persist();
   listeners.forEach((l) => l());
 }
+
+onVaultChange(() => {
+  logos = load();
+  listeners.forEach((l) => l());
+});
 
 export function addLogo(file: File, name: string): LogoAsset {
   const ext = file.name.split(".").pop()?.toUpperCase() || "SVG";
