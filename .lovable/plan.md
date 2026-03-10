@@ -1,55 +1,70 @@
 
 
-# Plan: Public Access — ny tab i Share Manager
+## Plan: Delete Images + Owner-Level "Vaults" Management
 
-## Koncept
+Two features: (1) ability to delete images, and (2) a new "owner" role with a top-level dashboard for managing multiple ImageVault instances (customers).
 
-En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
+---
 
-## Nya filer
+### 1. Delete Images
 
-### `src/stores/publicPageStore.ts`
-Store (localStorage, samma mönster som bucketStore) för publika sidor:
-```ts
-interface PublicPage {
-  id: string;
-  title: string;
-  description: string;
-  imageIds: string[];   // bilder + logo-IDs
-  slug: string;         // genererad URL-slug
-  published: boolean;
-  createdAt: string;
-}
+**`src/stores/imageStore.ts`** — Add `deleteImages(ids: string[])` method that filters out the given IDs and emits.
+
+**`src/pages/ImageLibrary.tsx`** — Add a "Delete" button (Trash2 icon) to the bulk action bar. On click, show an `AlertDialog` confirmation ("Delete X images? This cannot be undone."). On confirm, call `imageStore.deleteImages([...selectedIds])` and clear selection.
+
+Also add a delete button inside `ImageDetailModal` for single-image delete.
+
+**`src/components/ImageDetailModal.tsx`** — Add a destructive "Delete" button at the bottom of the modal. Confirmation via AlertDialog, then calls `imageStore.deleteImages([id])` and closes modal.
+
+---
+
+### 2. Owner Role + Vaults Management
+
+Inspired by the uploaded CMS screenshot — a top-level view where the app owner manages multiple "Vaults" (equivalent to "Sites" in the CMS). Each Vault represents a customer's ImageVault instance.
+
+**`src/contexts/UserRoleContext.tsx`** — Extend `UserRole` to `"owner" | "admin" | "supplier"`. Add `isOwner` boolean.
+
+**`src/stores/vaultStore.ts`** — New store (localStorage-persisted) managing a list of Vault objects:
 ```
-CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
+{ id, name, domain, status: "live" | "preview" | "draft", languages: string[], integrations: string[], updatedAt, avatarLetter }
+```
+With mock data (e.g. "Acme Travel", "Nordic Adventures", etc.) and CRUD methods.
 
-### `src/components/PublicPageEditModal.tsx`
-Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
+**`src/pages/VaultManager.tsx`** — New page, owner-only. Grid of Vault cards (like the CMS screenshot) showing:
+- Avatar letter + name + domain
+- Status badge (Live/Preview/Draft)
+- Language tags, integration tags
+- "Updated X ago"
+- "Open Vault →" button + preview eye icon
+- "+ Create New Vault" button top-right
+- Search bar + grid/list toggle
 
-### `src/components/PublicPageDetailModal.tsx`
-Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
+**`src/components/AppSidebar.tsx`** — Add owner-level nav items:
+```
+ownerItems = [
+  { title: "Vaults", url: "/vaults", icon: Building2 },
+  { title: "Users", url: "/users", icon: Users },
+  { title: "Platform Settings", url: "/platform-settings", icon: Settings2 },
+]
+```
+When role is "owner", show these items instead of admin items. The sidebar label changes to "ImageVault Platform".
 
-### `src/pages/PublicPagePreview.tsx`
-Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
+**`src/App.tsx`** — Add routes: `/vaults` → VaultManager, `/users` (placeholder), `/platform-settings` (placeholder).
 
-## Ändringar i befintliga filer
+**Role selector in sidebar** — Add "Owner / Platform" as a third option.
 
-### `src/pages/ShareManager.tsx`
-- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
-- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
-- Knappar: skapa ny, redigera, förhandsgranska, ta bort
+---
 
-### `src/App.tsx`
-- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
+### Files summary
 
-## Filsammanfattning
-
-| Fil | Åtgärd |
-|-----|--------|
-| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
-| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
-| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
-| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
-| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
-| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
+| File | Change |
+|------|--------|
+| `src/stores/imageStore.ts` | Add `deleteImages(ids)` |
+| `src/pages/ImageLibrary.tsx` | Add delete button in bulk bar with AlertDialog |
+| `src/components/ImageDetailModal.tsx` | Add single-image delete button |
+| `src/contexts/UserRoleContext.tsx` | Add `"owner"` role, `isOwner` |
+| `src/stores/vaultStore.ts` | New — vault CRUD store with mock data |
+| `src/pages/VaultManager.tsx` | New — owner dashboard with vault cards |
+| `src/components/AppSidebar.tsx` | Add owner nav items, third role option |
+| `src/App.tsx` | Add `/vaults` route |
 
