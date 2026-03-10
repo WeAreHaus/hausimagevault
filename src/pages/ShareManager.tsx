@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { mockShareLinks } from "@/data/mockData";
 import type { ImageItem } from "@/data/mockData";
+import { useShares } from "@/stores/shareStore";
 import { imageStore } from "@/stores/imageStore";
 import { useBuckets, deleteBucket, removeImageFromBucket } from "@/stores/bucketStore";
 import type { Bucket } from "@/stores/bucketStore";
