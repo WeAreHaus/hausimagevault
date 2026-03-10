@@ -17,6 +17,14 @@ const statusColors: Record<Vault["status"], string> = {
 export default function VaultManager() {
   const vaults = useSyncExternalStore(vaultStore.subscribe, vaultStore.getSnapshot);
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+  const { setRole, setActiveVaultId } = useUserRole();
+
+  const openVault = (vault: Vault) => {
+    setActiveVaultId(vault.id);
+    setRole("admin");
+    navigate("/");
+  };
   const [view, setView] = useState<"grid" | "list">("grid");
 
   const filtered = vaults.filter((v) =>
