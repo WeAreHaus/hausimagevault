@@ -1,55 +1,34 @@
 
 
-# Plan: Public Access — ny tab i Share Manager
+## Plan: Fix Data Leakage Between Vaults
 
-## Koncept
+After investigating, there are several sources of data leakage — some components still use hardcoded mock data instead of vault-scoped stores:
 
-En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
+### Issues Found
 
-## Nya filer
+1. **`ShareManager.tsx` (line 2, 191)** — Imports and renders `mockShareLinks` directly from `mockData.ts`. These quick-share links appear identically in every vault regardless of which vault is active.
 
-### `src/stores/publicPageStore.ts`
-Store (localStorage, samma mönster som bucketStore) för publika sidor:
-```ts
-interface PublicPage {
-  id: string;
-  title: string;
-  description: string;
-  imageIds: string[];   // bilder + logo-IDs
-  slug: string;         // genererad URL-slug
-  published: boolean;
-  createdAt: string;
-}
-```
-CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
+2. **`BrandAssets.tsx` (line 26-30)** — Has hardcoded `mockAssets` (favicons, fonts) that display on every vault. These should either be vault-scoped or only shown for vault v1.
 
-### `src/components/PublicPageEditModal.tsx`
-Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
+3. **`UploadFlow.tsx` (line 17-23)** — The simulated upload always uses the same 6 mock preview images (`fjord1`, `aurora1`, etc.), so uploads in different vaults look visually identical even though they're technically separate entries. This creates the strong impression of data leakage.
 
-### `src/components/PublicPageDetailModal.tsx`
-Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
+### Changes
 
-### `src/pages/PublicPagePreview.tsx`
-Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
+**`src/pages/ShareManager.tsx`**
+- Create a vault-scoped `shareStore` (similar pattern to other stores) to hold share links
+- Only seed `mockShareLinks` data for vault `"v1"`, other vaults start with empty quick-shares
+- Replace the direct `mockShareLinks` import with the store
 
-## Ändringar i befintliga filer
+**`src/stores/shareStore.ts`** (new file)
+- Vault-scoped store for quick share links using the same `getVaultKey` / `onVaultChange` pattern
+- Seeds mock data only for vault v1
 
-### `src/pages/ShareManager.tsx`
-- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
-- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
-- Knappar: skapa ny, redigera, förhandsgranska, ta bort
+**`src/pages/BrandAssets.tsx`**
+- Scope the hardcoded `mockAssets` (favicons/fonts) to vault v1 only — other vaults see empty brand assets sections
 
-### `src/App.tsx`
-- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
+**`src/pages/UploadFlow.tsx`**
+- Generate unique image IDs with the vault ID prefix so they're clearly distinguishable per vault (the mock previews will still look similar but at least won't collide)
 
-## Filsammanfattning
-
-| Fil | Åtgärd |
-|-----|--------|
-| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
-| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
-| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
-| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
-| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
-| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
+### Result
+Each vault will have fully independent data across all views: dashboard, image library, shares, brand assets, and user management.
 
