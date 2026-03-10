@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Eye, ArrowRight, LayoutGrid, List, Building2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { useUserRole } from "@/contexts/UserRoleContext";
 
 const statusColors: Record<Vault["status"], string> = {
   live: "bg-emerald-500/15 text-emerald-700 border-emerald-200",
@@ -15,6 +17,14 @@ const statusColors: Record<Vault["status"], string> = {
 export default function VaultManager() {
   const vaults = useSyncExternalStore(vaultStore.subscribe, vaultStore.getSnapshot);
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+  const { setRole, setActiveVaultId } = useUserRole();
+
+  const openVault = (vault: Vault) => {
+    setActiveVaultId(vault.id);
+    setRole("admin");
+    navigate("/");
+  };
   const [view, setView] = useState<"grid" | "list">("grid");
 
   const filtered = vaults.filter((v) =>
@@ -83,7 +93,7 @@ export default function VaultManager() {
                   <Button variant="ghost" size="icon" className="h-8 w-8" title="Preview">
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs">
+                  <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs" onClick={() => openVault(vault)}>
                     Open <ArrowRight className="h-3 w-3" />
                   </Button>
                 </div>
@@ -113,7 +123,7 @@ export default function VaultManager() {
               <span className="text-xs text-muted-foreground hidden md:block whitespace-nowrap">
                 {formatDistanceToNow(new Date(vault.updatedAt), { addSuffix: true })}
               </span>
-              <Button variant="ghost" size="sm" className="gap-1 text-xs shrink-0">
+              <Button variant="ghost" size="sm" className="gap-1 text-xs shrink-0" onClick={() => openVault(vault)}>
                 Open <ArrowRight className="h-3 w-3" />
               </Button>
             </div>

@@ -1,38 +1,55 @@
 
 
-## Plan: Connect Acme Travel Vault to Admin Workspace + Auto-Navigate on Role Switch
+# Plan: Public Access — ny tab i Share Manager
 
-### Concept
+## Koncept
 
-The "Acme Travel" vault (id: `v1`) becomes the current customer workspace. When the owner clicks "Open" on a vault card, the app switches to admin role and navigates to that vault's dashboard. The existing image library, shares, brand assets etc. all belong to this vault context. When switching to Owner role, the app auto-navigates to `/vaults`.
+En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
 
-### Changes
+## Nya filer
 
-**1. Add active vault concept to UserRoleContext** (`src/contexts/UserRoleContext.tsx`)
-- Add `activeVaultId: string | null` and `setActiveVaultId` to context
-- Default `activeVaultId` to `"v1"` (Acme Travel) when in admin role
-- Export `activeVaultId` so components can reference which vault is active
+### `src/stores/publicPageStore.ts`
+Store (localStorage, samma mönster som bucketStore) för publika sidor:
+```ts
+interface PublicPage {
+  id: string;
+  title: string;
+  description: string;
+  imageIds: string[];   // bilder + logo-IDs
+  slug: string;         // genererad URL-slug
+  published: boolean;
+  createdAt: string;
+}
+```
+CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
 
-**2. Auto-navigate on role switch** (`src/components/AppSidebar.tsx`)
-- Import `useNavigate` from react-router-dom
-- In the role `Select` `onValueChange` handler: if switching to `"owner"`, navigate to `/vaults`. If switching to `"admin"` or `"supplier"`, navigate to `/`.
+### `src/components/PublicPageEditModal.tsx`
+Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
 
-**3. "Open" button on vault cards navigates into admin view** (`src/pages/VaultManager.tsx`)
-- Import `useNavigate` and `useUserRole`
-- The "Open" button calls `setActiveVaultId(vault.id)`, `setRole("admin")`, and `navigate("/")`
-- This simulates "entering" that vault's workspace
+### `src/components/PublicPageDetailModal.tsx`
+Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
 
-**4. Show active vault name in header** (`src/components/AppLayout.tsx`)
-- Import `useUserRole` and `vaultStore`
-- When in admin/supplier role and `activeVaultId` is set, show the vault name (e.g. "Acme Travel") in the header instead of the generic "Tour Image Management" text
-- When in owner role, show "ImageVault Platform"
+### `src/pages/PublicPagePreview.tsx`
+Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
 
-### Files
+## Ändringar i befintliga filer
 
-| File | Change |
-|------|--------|
-| `src/contexts/UserRoleContext.tsx` | Add `activeVaultId`, `setActiveVaultId` |
-| `src/components/AppSidebar.tsx` | Auto-navigate on role change |
-| `src/pages/VaultManager.tsx` | Wire "Open" button to switch role + navigate |
-| `src/components/AppLayout.tsx` | Show active vault name in header |
+### `src/pages/ShareManager.tsx`
+- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
+- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
+- Knappar: skapa ny, redigera, förhandsgranska, ta bort
+
+### `src/App.tsx`
+- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
+
+## Filsammanfattning
+
+| Fil | Åtgärd |
+|-----|--------|
+| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
+| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
+| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
+| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
+| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
+| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
 

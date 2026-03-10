@@ -8,12 +8,15 @@ interface UserRoleContextType {
   isOwner: boolean;
   isAdmin: boolean;
   isSupplier: boolean;
+  activeVaultId: string | null;
+  setActiveVaultId: (id: string | null) => void;
 }
 
 const UserRoleContext = createContext<UserRoleContextType | undefined>(undefined);
 
 export function UserRoleProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<UserRole>("admin");
+  const [activeVaultId, setActiveVaultId] = useState<string | null>("v1");
 
   return (
     <UserRoleContext.Provider
@@ -23,6 +26,8 @@ export function UserRoleProvider({ children }: { children: ReactNode }) {
         isOwner: role === "owner",
         isAdmin: role === "admin",
         isSupplier: role === "supplier",
+        activeVaultId,
+        setActiveVaultId,
       }}
     >
       {children}

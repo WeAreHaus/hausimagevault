@@ -1,7 +1,7 @@
 import { LayoutDashboard, Images, Share2, Palette, Camera, Upload, ShieldCheck, Truck, Settings2, Building2, Users, Crown } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
-import { useUserRole } from "@/contexts/UserRoleContext";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useUserRole, type UserRole } from "@/contexts/UserRoleContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Sidebar,
@@ -40,7 +40,14 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
   const { role, setRole, isAdmin, isOwner } = useUserRole();
+
+  const handleRoleChange = (v: string) => {
+    setRole(v as UserRole);
+    if (v === "owner") navigate("/vaults");
+    else navigate("/");
+  };
 
   const items = isOwner ? ownerItems : isAdmin ? adminItems : supplierItems;
   const label = isOwner ? "ImageVault Platform" : "ImageVault";
@@ -80,7 +87,7 @@ export function AppSidebar() {
         {!collapsed && (
           <div className="px-3 py-2 space-y-1.5">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Role</p>
-            <Select value={role} onValueChange={(v) => setRole(v as "owner" | "admin" | "supplier")}>
+            <Select value={role} onValueChange={handleRoleChange}>
               <SelectTrigger className="h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
