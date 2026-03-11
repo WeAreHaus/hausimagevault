@@ -1,55 +1,30 @@
 
 
-# Plan: Public Access — ny tab i Share Manager
+## Plan: Add Simple Login Gate
 
-## Koncept
+Since there's no backend connected, this will be a client-side login gate with hardcoded credentials. It's sufficient for a demo/presentation but not production-secure.
 
-En ny tab "Public Access" bredvid Buckets och Quick Shares. Här skapar admin publika sidor/portaler — öppna webbsidor med bilder och brand assets som vem som helst kan se via en länk. Tänk media kit / press page.
+### Changes
 
-## Nya filer
+**`src/stores/authStore.ts`** (new)
+- Simple auth store with `login(email, password)` and `logout()` methods
+- Hardcoded credentials: `johan@haus.se` / `jochen`
+- Persists login state in localStorage so user stays logged in across refreshes
 
-### `src/stores/publicPageStore.ts`
-Store (localStorage, samma mönster som bucketStore) för publika sidor:
-```ts
-interface PublicPage {
-  id: string;
-  title: string;
-  description: string;
-  imageIds: string[];   // bilder + logo-IDs
-  slug: string;         // genererad URL-slug
-  published: boolean;
-  createdAt: string;
-}
-```
-CRUD-funktioner: `createPublicPage`, `updatePublicPage`, `deletePublicPage`, `addAssetsToPublicPage`, `removeAssetFromPublicPage`, `usePublicPages`.
+**`src/pages/Login.tsx`** (new)
+- Clean login form with email + password fields
+- Shows error on invalid credentials
+- Redirects to `/` on success
 
-### `src/components/PublicPageEditModal.tsx`
-Dialog för att skapa/redigera en publik sida — titel, beskrivning, slug. Återanvänder samma mönster som `BucketEditModal`.
+**`src/components/ProtectedRoute.tsx`** (new)
+- Wrapper that checks auth state
+- Redirects to `/login` if not authenticated
 
-### `src/components/PublicPageDetailModal.tsx`
-Detaljvy (som `BucketDetailModal`) — visar alla assets i sidan med typ/format-info och möjlighet att ta bort enskilda.
+**`src/App.tsx`**
+- Add `/login` route (public)
+- Wrap the `AppLayout` route with `ProtectedRoute`
+- Keep `/public/:slug` accessible without login
 
-### `src/pages/PublicPagePreview.tsx`
-Faktisk publik sida som renderas på route `/public/:slug`. Visar titel, beskrivning och ett bildgalleri. Ingen sidebar/layout — fristående sida. Besökare kan se och ladda ner bilder.
-
-## Ändringar i befintliga filer
-
-### `src/pages/ShareManager.tsx`
-- Lägg till tredje tab `<TabsTrigger value="public-access">Public Access</TabsTrigger>`
-- TabsContent med lista över publika sidor (kort med titel, antal assets, publicerad-status, slug/länk)
-- Knappar: skapa ny, redigera, förhandsgranska, ta bort
-
-### `src/App.tsx`
-- Ny route: `<Route path="/public/:slug" element={<PublicPagePreview />} />` — utanför `AppLayout` (ingen sidebar)
-
-## Filsammanfattning
-
-| Fil | Åtgärd |
-|-----|--------|
-| `src/stores/publicPageStore.ts` | **Ny** — CRUD-store för publika sidor |
-| `src/components/PublicPageEditModal.tsx` | **Ny** — skapa/redigera dialog |
-| `src/components/PublicPageDetailModal.tsx` | **Ny** — detaljvy med assets |
-| `src/pages/PublicPagePreview.tsx` | **Ny** — publik galleri-sida |
-| `src/pages/ShareManager.tsx` | **Ändra** — lägg till Public Access-tab |
-| `src/App.tsx` | **Ändra** — ny route `/public/:slug` |
+### Result
+When published, visitors see a login screen. Only `johan@haus.se` with password `jochen` can access the app.
 
