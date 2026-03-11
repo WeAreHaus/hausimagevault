@@ -4,7 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { UserRoleProvider } from "@/contexts/UserRoleContext";
+import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import ImageLibrary from "@/pages/ImageLibrary";
 import ShareManager from "@/pages/ShareManager";
@@ -25,7 +27,8 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route element={<AppLayout />}>
+            <Route path="/login" element={<Login />} />
+            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/" element={<Dashboard />} />
               <Route path="/library" element={<ImageLibrary />} />
               <Route path="/upload" element={<UploadFlow />} />
