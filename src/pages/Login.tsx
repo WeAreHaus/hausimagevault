@@ -33,6 +33,7 @@ export default function Login() {
       await authStore.login(email, password);
       navigate("/", { replace: true });
     } catch (err: any) {
+      console.error("Login error:", err);
       setError(err?.message || "Felaktiga inloggningsuppgifter");
     } finally {
       setLoading(false);
