@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSyncExternalStore } from "react";
 import { authStore } from "@/stores/authStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,13 +12,30 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const isAuth = useSyncExternalStore(
+    authStore.subscribe,
+    () => authStore.isAuthenticated()
+  );
+
+  // Redirect if already logged in
+  if (isAuth) {
+    navigate("/", { replace: true });
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (authStore.login(email, password)) {
+    setLoading(true);
+    setError("");
+    try {
+      await authStore.login(email, password);
       navigate("/", { replace: true });
-    } else {
-      setError("Felaktiga inloggningsuppgifter");
+    } catch (err: any) {
+      setError(err?.message || "Felaktiga inloggningsuppgifter");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,7 +69,9 @@ export default function Login() {
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">Logga in</Button>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Loggar in…" : "Logga in"}
+            </Button>
           </form>
         </CardContent>
       </Card>
