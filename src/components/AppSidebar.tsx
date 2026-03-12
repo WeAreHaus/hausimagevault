@@ -1,7 +1,8 @@
-import { LayoutDashboard, Images, Share2, Palette, Camera, Upload, ShieldCheck, Truck, Settings2, Building2, Users, Crown } from "lucide-react";
+import { LayoutDashboard, Images, Share2, Palette, Camera, Upload, ShieldCheck, Truck, Settings2, Building2, Users, Crown, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUserRole, type UserRole } from "@/contexts/UserRoleContext";
+import { authStore } from "@/stores/authStore";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Sidebar,
@@ -105,6 +106,15 @@ export function AppSidebar() {
             </Select>
           </div>
         )}
+        <div className="px-3 pb-3">
+          <SidebarMenuButton
+            onClick={() => { authStore.logout(); navigate("/login"); }}
+            className="w-full hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {!collapsed && <span>Logga ut</span>}
+          </SidebarMenuButton>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
