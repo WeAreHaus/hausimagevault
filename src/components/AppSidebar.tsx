@@ -106,6 +106,15 @@ export function AppSidebar() {
             </Select>
           </div>
         )}
+        <div className="px-3 pb-3">
+          <SidebarMenuButton
+            onClick={() => { authStore.logout(); navigate("/login"); }}
+            className="w-full hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {!collapsed && <span>Logga ut</span>}
+          </SidebarMenuButton>
+        </div>
       </SidebarFooter>
     </Sidebar>
   );
