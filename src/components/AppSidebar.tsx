@@ -1,4 +1,4 @@
-import { LayoutDashboard, Images, Share2, Palette, Camera, Upload, ShieldCheck, Truck, Settings2, Building2, Users, Crown } from "lucide-react";
+import { LayoutDashboard, Images, Share2, Palette, Camera, Upload, ShieldCheck, Truck, Settings2, Building2, Users, Crown, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUserRole, type UserRole } from "@/contexts/UserRoleContext";
