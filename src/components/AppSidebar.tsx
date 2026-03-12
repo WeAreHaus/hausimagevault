@@ -2,6 +2,7 @@ import { LayoutDashboard, Images, Share2, Palette, Camera, Upload, ShieldCheck, 
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useUserRole, type UserRole } from "@/contexts/UserRoleContext";
+import { authStore } from "@/stores/authStore";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Sidebar,
