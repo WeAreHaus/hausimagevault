@@ -47,6 +47,7 @@ function logoToImageItem(logo: LogoAsset): ImageItem {
   return {
     id: logo.id,
     src: logo.previewUrl,
+    s3Key: logo.s3Key,
     title: logo.name,
     photographer: "",
     copyright: "",
