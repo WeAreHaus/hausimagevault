@@ -306,7 +306,7 @@ export default function ImageLibrary() {
               </div>
 
               <div className="aspect-[4/3] overflow-hidden relative">
-                <S3Image src={img.src} s3Key={img.s3Key} alt={img.altText} className={`h-full w-full object-cover transition-all duration-300 group-hover:scale-105 ${isSelected ? "brightness-90" : ""}`} loading="lazy" />
+                <S3Image src={img.src} s3Key={img.s3Key} size="medium" alt={img.altText} className={`h-full w-full object-cover transition-all duration-300 group-hover:scale-105 ${isSelected ? "brightness-90" : ""}`} />
                 {isVideo && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                     <div className="h-10 w-10 rounded-full bg-background/90 flex items-center justify-center shadow-md">
