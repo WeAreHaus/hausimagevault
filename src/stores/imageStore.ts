@@ -55,7 +55,7 @@ export const imageStore = {
     const now = new Date().toISOString();
     const newItems: ImageItem[] = files.map((f, i) => ({
       id: `uploaded-${Date.now()}-${i}`,
-      src: f.previewUrl,
+      src: s3Keys?.[i] ? "" : f.previewUrl,
       s3Key: s3Keys?.[i],
       title: f.title || f.name,
       photographer: f.photographer || "Unknown",
