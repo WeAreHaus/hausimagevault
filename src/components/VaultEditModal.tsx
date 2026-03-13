@@ -16,6 +16,7 @@ interface VaultEditModalProps {
 export default function VaultEditModal({ open, onOpenChange, vault }: VaultEditModalProps) {
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
+  const [status, setStatus] = useState<Vault["status"]>("draft");
   const isEdit = !!vault;
 
   useEffect(() => {
