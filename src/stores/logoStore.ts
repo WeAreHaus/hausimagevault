@@ -1,11 +1,14 @@
 import { useSyncExternalStore } from "react";
 import { getVaultKey, onVaultChange } from "@/stores/vaultScope";
+import { uploadFileToS3 } from "@/lib/s3Client";
+import { getCurrentVaultId } from "@/stores/vaultScope";
 
 export interface LogoAsset {
   id: string;
   name: string;
   originalFormat: string;
   previewUrl: string;
+  s3Key?: string;
   fileName: string;
   uploadedAt: string;
   dimensions?: string;
@@ -43,14 +46,29 @@ onVaultChange(() => {
   listeners.forEach((l) => l());
 });
 
-export function addLogo(file: File, name: string): LogoAsset {
+/**
+ * Upload a logo file, optionally to S3. Returns the created LogoAsset.
+ * S3 path: {vault-slug}/assets/{uuid}.{ext}
+ */
+export async function addLogo(file: File, name: string): Promise<LogoAsset> {
   const ext = file.name.split(".").pop()?.toUpperCase() || "SVG";
   const previewUrl = file.type === "image/svg+xml" ? URL.createObjectURL(file) : "/placeholder.svg";
+
+  let s3Key: string | undefined;
+  try {
+    const vaultId = getCurrentVaultId();
+    const prefix = `${vaultId}/assets`;
+    s3Key = await uploadFileToS3(file, prefix);
+  } catch (err) {
+    console.warn("S3 upload for logo failed, storing locally only:", err);
+  }
+
   const logo: LogoAsset = {
     id: `logo-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     name,
     originalFormat: ext,
     previewUrl,
+    s3Key,
     fileName: file.name,
     uploadedAt: new Date().toISOString(),
   };
