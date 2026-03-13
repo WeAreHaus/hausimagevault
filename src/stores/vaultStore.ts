@@ -32,8 +32,8 @@ const VAULT_SCOPED_KEYS = [
 ];
 
 const mockVaults: Vault[] = [
-  { id: "v1", name: "Acme Travel", domain: "acmetravel.com", status: "live", updatedAt: "2026-03-08T14:30:00Z", avatarLetter: "A" },
-  { id: "v2", name: "Nordic Adventures", domain: "nordicadv.no", status: "live", updatedAt: "2026-03-07T09:15:00Z", avatarLetter: "N" },
+  { id: "v1", slug: "acme-travel", name: "Acme Travel", domain: "acmetravel.com", status: "live", updatedAt: "2026-03-08T14:30:00Z", avatarLetter: "A" },
+  { id: "v2", slug: "nordic-adventures", name: "Nordic Adventures", domain: "nordicadv.no", status: "live", updatedAt: "2026-03-07T09:15:00Z", avatarLetter: "N" },
 ];
 
 function load(): Vault[] {
