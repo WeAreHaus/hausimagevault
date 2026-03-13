@@ -28,6 +28,7 @@ export function ImageDetailModal({ image, onClose }: Props) {
   const [showPublish, setShowPublish] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [newTag, setNewTag] = useState("");
+  const [downloading, setDownloading] = useState(false);
 
   if (!image) return null;
 
