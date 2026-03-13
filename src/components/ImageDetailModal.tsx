@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Sparkles, Share2, Globe, Play, X, Plus, Trash2 } from "lucide-react";
+import { S3Image } from "@/components/S3Image";
 import { ShareModal } from "@/components/ShareModal";
 import { PublishModal } from "@/components/PublishModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -75,7 +76,7 @@ export function ImageDetailModal({ image, onClose }: Props) {
             {/* Preview */}
             <div className="space-y-3">
               <div className="rounded-lg overflow-hidden border relative">
-                <img src={image.src} alt={currentAlt} className="w-full object-contain max-h-[400px]" />
+                <S3Image src={image.src} s3Key={image.s3Key} alt={currentAlt} className="w-full object-contain max-h-[400px]" />
                 {isVideo && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                     <div className="h-16 w-16 rounded-full bg-background/90 flex items-center justify-center shadow-lg">
