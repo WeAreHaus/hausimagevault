@@ -37,6 +37,7 @@ export default function VaultEditModal({ open, onOpenChange, vault }: VaultEditM
       vaultStore.updateVault(vault.id, {
         name: trimmedName,
         domain: domain.trim(),
+        status,
         avatarLetter: trimmedName[0].toUpperCase(),
       });
       toast.success("Vault updated");
@@ -44,7 +45,7 @@ export default function VaultEditModal({ open, onOpenChange, vault }: VaultEditM
       vaultStore.addVault({
         name: trimmedName,
         domain: domain.trim(),
-        status: "draft",
+        status,
         avatarLetter: trimmedName[0].toUpperCase(),
       });
       toast.success("Vault created");
