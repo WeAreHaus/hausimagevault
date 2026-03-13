@@ -23,6 +23,7 @@ export default function VaultEditModal({ open, onOpenChange, vault }: VaultEditM
     if (open) {
       setName(vault?.name ?? "");
       setDomain(vault?.domain ?? "");
+      setStatus(vault?.status ?? "draft");
     }
   }, [open, vault]);
 
