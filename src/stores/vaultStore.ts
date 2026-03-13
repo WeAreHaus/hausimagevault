@@ -61,8 +61,9 @@ export const vaultStore = {
   subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
   getSnapshot(): Vault[] { return vaults; },
 
-  addVault(v: Omit<Vault, "id" | "updatedAt">) {
-    const newVault: Vault = { ...v, id: `v-${Date.now()}`, updatedAt: new Date().toISOString() };
+  addVault(v: Omit<Vault, "id" | "slug" | "updatedAt">) {
+    const slug = generateSlug(v.name);
+    const newVault: Vault = { ...v, id: slug, slug, updatedAt: new Date().toISOString() };
     vaults = [newVault, ...vaults];
     emit();
     return newVault;
