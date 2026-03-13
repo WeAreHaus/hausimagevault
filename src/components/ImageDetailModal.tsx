@@ -63,6 +63,30 @@ export function ImageDetailModal({ image, onClose }: Props) {
     setNewTag("");
   };
 
+  const handleDownloadOriginal = async () => {
+    if (!image.s3Key) {
+      toast.error("No original file available for download");
+      return;
+    }
+    setDownloading(true);
+    try {
+      const url = await getDownloadUrl(image.s3Key);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = image.title || "download";
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast.success("Download started");
+    } catch (err) {
+      console.error("Download failed:", err);
+      toast.error("Failed to download original");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <>
       <Dialog open={!!image} onOpenChange={() => onClose()}>
