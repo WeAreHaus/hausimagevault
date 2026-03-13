@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Copy, Check, Download, FolderPlus, Share2, Trash2, Pencil, Plus } from "lucide-react";
+import { S3Image } from "@/components/S3Image";
 import { toast } from "sonner";
 import { useLogos, removeLogo, updateLogoName, type LogoAsset } from "@/stores/logoStore";
 import { useBrandColors, addBrandColor, updateBrandColor, removeBrandColor } from "@/stores/brandColorStore";
