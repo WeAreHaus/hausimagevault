@@ -2,9 +2,11 @@ import { useState, useMemo, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { MetadataEntryForm, countFilledFields, totalFields, type UploadedFile } from "@/components/MetadataEntryForm";
-import { Upload, CheckCircle2, ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { Upload, CheckCircle2, ArrowLeft, Image as ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { imageStore } from "@/stores/imageStore";
+import { uploadFileToS3 } from "@/lib/s3Client";
+import { getCurrentVaultId } from "@/stores/vaultScope";
 
 // Mock images for simulated upload
 import fjord1 from "@/assets/mock/fjord-1.jpg";
@@ -23,8 +25,8 @@ function createMockFiles(count: number): UploadedFile[] {
     previewUrl: mockPreviews[i % mockPreviews.length],
     title: "",
     photographer: "",
-     copyright: "",
-     license: "",
+    copyright: "",
+    license: "",
     description: "",
     altText: "",
     tags: "",
@@ -36,10 +38,11 @@ function filesToUploaded(fileList: FileList): UploadedFile[] {
     id: `upload-real-${Date.now()}-${i}`,
     name: file.name,
     previewUrl: URL.createObjectURL(file),
+    rawFile: file,
     title: "",
     photographer: "",
-     copyright: "",
-     license: "",
+    copyright: "",
+    license: "",
     description: "",
     altText: "",
     tags: "",
@@ -50,6 +53,7 @@ export default function UploadFlow() {
   const [step, setStep] = useState<"dropzone" | "metadata" | "done">("dropzone");
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totalFilledFields = useMemo(() => files.reduce((sum, f) => sum + countFilledFields(f), 0), [files]);
@@ -78,9 +82,39 @@ export default function UploadFlow() {
     setFiles((prev) => prev.map((f, i) => (i === index ? updated : f)));
   };
 
-  const handleFinalize = () => {
-    imageStore.addImages(files);
+  const handleFinalize = async () => {
+    setUploading(true);
+
+    // Determine which files have real File objects (not mock)
+    const realFiles = files.filter((f) => f.rawFile);
+    const isMock = realFiles.length === 0;
+
+    let s3Keys: string[] | undefined;
+
+    if (!isMock) {
+      try {
+        const vaultId = getCurrentVaultId();
+        const prefix = `${vaultId}/originals`;
+
+        // Upload all files to S3 in parallel
+        const results = await Promise.all(
+          files.map((f) =>
+            f.rawFile
+              ? uploadFileToS3(f.rawFile, prefix)
+              : Promise.resolve("")
+          )
+        );
+        s3Keys = results;
+      } catch (err) {
+        console.error("S3 upload failed:", err);
+        toast.error("Upload to cloud storage failed. Files saved locally only.");
+        s3Keys = undefined;
+      }
+    }
+
+    imageStore.addImages(files, s3Keys);
     setStep("done");
+    setUploading(false);
     toast.success(`${files.length} images uploaded`);
   };
 
@@ -130,7 +164,7 @@ export default function UploadFlow() {
               Add metadata to your images. You can finalize at any time.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setStep("dropzone")} className="gap-1.5">
+          <Button variant="outline" size="sm" onClick={() => setStep("dropzone")} className="gap-1.5" disabled={uploading}>
             <ArrowLeft className="h-4 w-4" /> Back
           </Button>
         </div>
@@ -164,8 +198,16 @@ export default function UploadFlow() {
               ? "All metadata filled — ready to finalize!"
               : `${Math.round(progressPercent)}% of metadata filled.`}
           </p>
-          <Button onClick={handleFinalize} className="gap-1.5">
-            <CheckCircle2 className="h-4 w-4" /> Finalize Upload
+          <Button onClick={handleFinalize} className="gap-1.5" disabled={uploading}>
+            {uploading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Uploading…
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="h-4 w-4" /> Finalize Upload
+              </>
+            )}
           </Button>
         </div>
       </div>
