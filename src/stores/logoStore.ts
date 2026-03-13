@@ -52,7 +52,7 @@ onVaultChange(() => {
  */
 export async function addLogo(file: File, name: string): Promise<LogoAsset> {
   const ext = file.name.split(".").pop()?.toUpperCase() || "SVG";
-  const previewUrl = file.type === "image/svg+xml" ? URL.createObjectURL(file) : "/placeholder.svg";
+  const previewUrl = "";
 
   let s3Key: string | undefined;
   try {

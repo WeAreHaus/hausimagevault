@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { imageStore } from "@/stores/imageStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Images, Share2, Globe, Archive } from "lucide-react";
+import { S3Image } from "@/components/S3Image";
 
 export default function Dashboard() {
   const images = useSyncExternalStore(imageStore.subscribe, imageStore.getSnapshot);
@@ -42,7 +43,7 @@ export default function Dashboard() {
           <CardContent className="space-y-3">
             {images.slice(0, 4).map((img) => (
               <div key={img.id} className="flex items-center gap-3">
-                <img src={img.src} alt={img.altText} className="h-10 w-14 rounded object-cover" />
+                <S3Image src={img.src} s3Key={img.s3Key} alt={img.altText} className="h-10 w-14 rounded object-cover" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{img.title}</p>
                   <p className="text-xs text-muted-foreground">{img.photographer} · {img.tourDate}</p>
