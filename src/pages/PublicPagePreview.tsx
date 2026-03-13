@@ -64,7 +64,7 @@ export default function PublicPagePreview() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {assets.map((asset) => (
               <div key={asset.id} className="group relative rounded-lg border overflow-hidden bg-muted">
-                <img src={asset.src} alt={asset.title} className="w-full aspect-square object-cover" />
+                <img src={asset.s3Key ? getCdnUrl(asset.s3Key, "medium") : asset.src} alt={asset.title} className="w-full aspect-square object-cover" loading="lazy" />
 
                 {/* Watermark overlay */}
                 {showWatermark && (
