@@ -13,6 +13,8 @@ export type MediaType = "image" | "video";
 export interface ImageItem {
   id: string;
   src: string;
+  /** S3 object key – present for cloud-stored files */
+  s3Key?: string;
   title: string;
   photographer: string;
   copyright: string;

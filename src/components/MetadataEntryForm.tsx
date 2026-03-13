@@ -11,6 +11,8 @@ export interface UploadedFile {
   id: string;
   name: string;
   previewUrl: string;
+  /** Original File object for S3 upload */
+  rawFile?: File;
   title: string;
   photographer: string;
   copyright: string;
@@ -28,7 +30,10 @@ interface Props {
 const metadataFields: (keyof UploadedFile)[] = ["title", "photographer", "copyright", "license", "description", "altText"];
 
 export function countFilledFields(file: UploadedFile): number {
-  return metadataFields.filter((f) => file[f].trim() !== "").length;
+  return metadataFields.filter((f) => {
+    const val = file[f];
+    return typeof val === "string" && val.trim() !== "";
+  }).length;
 }
 
 export const totalFields = metadataFields.length;
