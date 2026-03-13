@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Sparkles, Share2, Globe, Play, X, Plus, Trash2 } from "lucide-react";
+import { Sparkles, Share2, Globe, Play, X, Plus, Trash2, Download } from "lucide-react";
 import { S3Image } from "@/components/S3Image";
 import { ShareModal } from "@/components/ShareModal";
 import { PublishModal } from "@/components/PublishModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { getDownloadUrl } from "@/lib/s3Client";
 
 interface Props {
   image: ImageItem | null;
