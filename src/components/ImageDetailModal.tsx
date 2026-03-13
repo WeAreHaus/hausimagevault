@@ -197,6 +197,11 @@ export function ImageDetailModal({ image, onClose }: Props) {
               </div>
 
               <div className="flex gap-2 pt-2">
+                {image.s3Key && (
+                  <Button onClick={handleDownloadOriginal} variant="outline" className="flex-1 gap-1.5" disabled={downloading}>
+                    <Download className="h-4 w-4" /> {downloading ? "Laddar…" : "Download Original"}
+                  </Button>
+                )}
                 <Button onClick={() => setShowShare(true)} variant="outline" className="flex-1 gap-1.5">
                   <Share2 className="h-4 w-4" /> Create Share Link
                 </Button>
