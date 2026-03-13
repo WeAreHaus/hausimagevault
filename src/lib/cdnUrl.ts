@@ -28,8 +28,8 @@ const SIZE_PRESETS: Record<Exclude<ImageSize, "original">, { width: number }> = 
 export function getCdnUrl(s3Key: string, size: ImageSize = "medium"): string {
   const params = new URLSearchParams();
 
-  params.set("format", "webp");
-  params.set("quality", "80");
+  params.set("format", "avif");
+  params.set("quality", size === "thumb" ? "70" : "80");
 
   if (size !== "original") {
     const preset = SIZE_PRESETS[size];

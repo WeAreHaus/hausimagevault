@@ -8,12 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Sparkles, Share2, Globe, Play, X, Plus, Trash2 } from "lucide-react";
+import { Sparkles, Share2, Globe, Play, X, Plus, Trash2, Download } from "lucide-react";
 import { S3Image } from "@/components/S3Image";
 import { ShareModal } from "@/components/ShareModal";
 import { PublishModal } from "@/components/PublishModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { getDownloadUrl } from "@/lib/s3Client";
 
 interface Props {
   image: ImageItem | null;
@@ -27,6 +28,7 @@ export function ImageDetailModal({ image, onClose }: Props) {
   const [showPublish, setShowPublish] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [newTag, setNewTag] = useState("");
+  const [downloading, setDownloading] = useState(false);
 
   if (!image) return null;
 
@@ -59,6 +61,30 @@ export function ImageDetailModal({ image, onClose }: Props) {
     }
     imageStore.updateImage(image.id, { tags: [...image.tags, trimmed] });
     setNewTag("");
+  };
+
+  const handleDownloadOriginal = async () => {
+    if (!image.s3Key) {
+      toast.error("No original file available for download");
+      return;
+    }
+    setDownloading(true);
+    try {
+      const url = await getDownloadUrl(image.s3Key);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = image.title || "download";
+      a.target = "_blank";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast.success("Download started");
+    } catch (err) {
+      console.error("Download failed:", err);
+      toast.error("Failed to download original");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
@@ -171,6 +197,11 @@ export function ImageDetailModal({ image, onClose }: Props) {
               </div>
 
               <div className="flex gap-2 pt-2">
+                {image.s3Key && (
+                  <Button onClick={handleDownloadOriginal} variant="outline" className="flex-1 gap-1.5" disabled={downloading}>
+                    <Download className="h-4 w-4" /> {downloading ? "Laddar…" : "Download Original"}
+                  </Button>
+                )}
                 <Button onClick={() => setShowShare(true)} variant="outline" className="flex-1 gap-1.5">
                   <Share2 className="h-4 w-4" /> Create Share Link
                 </Button>
