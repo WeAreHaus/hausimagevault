@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { imageStore } from "@/stores/imageStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Images, Share2, Globe, Archive } from "lucide-react";
+import { S3Image } from "@/components/S3Image";
 
 export default function Dashboard() {
   const images = useSyncExternalStore(imageStore.subscribe, imageStore.getSnapshot);
