@@ -60,6 +60,13 @@ export default function VaultEditModal({ open, onOpenChange, vault }: VaultEditM
             <Label htmlFor="vault-name">Name</Label>
             <Input id="vault-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="My Company" />
           </div>
+          {isEdit && vault?.slug && (
+            <div className="space-y-2">
+              <Label htmlFor="vault-slug">Storage Folder (read-only)</Label>
+              <Input id="vault-slug" value={vault.slug} readOnly className="bg-muted text-muted-foreground cursor-default" />
+              <p className="text-xs text-muted-foreground">Used as the S3 folder prefix for this vault's files.</p>
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="vault-domain">Domain</Label>
             <Input id="vault-domain" value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="example.com" />
