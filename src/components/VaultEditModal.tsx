@@ -63,6 +63,18 @@ export default function VaultEditModal({ open, onOpenChange, vault }: VaultEditM
           <div className="space-y-2">
             <Label htmlFor="vault-name">Name</Label>
             <Input id="vault-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="My Company" />
+          <div className="space-y-2">
+            <Label htmlFor="vault-status">Status</Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as Vault["status"])}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="preview">Preview</SelectItem>
+                <SelectItem value="live">Live</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="vault-domain">Domain</Label>
