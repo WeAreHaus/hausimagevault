@@ -144,7 +144,7 @@ export default function BrandAssets() {
               <Card key={logo.id}>
                 <CardContent className="p-4 space-y-3">
                   <div className="h-24 rounded border bg-muted flex items-center justify-center overflow-hidden">
-                    <img src={logo.previewUrl} alt={logo.name} className="h-full w-full object-contain p-2" />
+                    <S3Image src={logo.previewUrl} s3Key={logo.s3Key} alt={logo.name} className="h-full w-full object-contain p-2" />
                   </div>
 
                   {editingId === logo.id ? (
