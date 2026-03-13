@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, Copy, Check, Download, FolderPlus, Share2, Trash2, Pencil, Plus } from "lucide-react";
+import { S3Image } from "@/components/S3Image";
 import { toast } from "sonner";
 import { useLogos, removeLogo, updateLogoName, type LogoAsset } from "@/stores/logoStore";
 import { useBrandColors, addBrandColor, updateBrandColor, removeBrandColor } from "@/stores/brandColorStore";
@@ -46,6 +47,7 @@ function logoToImageItem(logo: LogoAsset): ImageItem {
   return {
     id: logo.id,
     src: logo.previewUrl,
+    s3Key: logo.s3Key,
     title: logo.name,
     photographer: "",
     copyright: "",
@@ -143,7 +145,7 @@ export default function BrandAssets() {
               <Card key={logo.id}>
                 <CardContent className="p-4 space-y-3">
                   <div className="h-24 rounded border bg-muted flex items-center justify-center overflow-hidden">
-                    <img src={logo.previewUrl} alt={logo.name} className="h-full w-full object-contain p-2" />
+                    <S3Image src={logo.previewUrl} s3Key={logo.s3Key} alt={logo.name} className="h-full w-full object-contain p-2" />
                   </div>
 
                   {editingId === logo.id ? (

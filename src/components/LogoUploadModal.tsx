@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, FileUp } from "lucide-react";
+import { Upload, FileUp, Loader2 } from "lucide-react";
 import { addLogo } from "@/stores/logoStore";
 import { toast } from "sonner";
 
@@ -19,6 +19,7 @@ export function LogoUploadModal({ open, onClose }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState("");
   const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isValidExt = (f: File) => {
@@ -45,11 +46,19 @@ export function LogoUploadModal({ open, onClose }: Props) {
     if (f) handleFile(f);
   }, [name]);
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!file) return;
-    addLogo(file, name || file.name);
-    toast.success(`Logo "${name || file.name}" uploaded`);
-    handleClose();
+    setUploading(true);
+    try {
+      await addLogo(file, name || file.name);
+      toast.success(`Logo "${name || file.name}" uploaded`);
+      handleClose();
+    } catch (err) {
+      console.error("Logo upload failed:", err);
+      toast.error("Upload failed");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleClose = () => {
@@ -112,8 +121,14 @@ export function LogoUploadModal({ open, onClose }: Props) {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleUpload} disabled={!file}>Upload</Button>
+          <Button variant="outline" onClick={handleClose} disabled={uploading}>Cancel</Button>
+          <Button onClick={handleUpload} disabled={!file || uploading}>
+            {uploading ? (
+              <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Uploading…</>
+            ) : (
+              "Upload"
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
