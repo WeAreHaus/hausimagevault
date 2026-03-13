@@ -1,10 +1,22 @@
 export interface Vault {
   id: string;
+  slug: string;
   name: string;
   domain: string;
   status: "live" | "preview" | "draft";
   updatedAt: string;
   avatarLetter: string;
+}
+
+/** Convert a name into a folder-safe slug + short unique suffix */
+export function generateSlug(name: string): string {
+  const base = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    || "vault";
+  const suffix = Math.random().toString(36).slice(2, 8);
+  return `${base}-${suffix}`;
 }
 
 const STORAGE_KEY = "dam-vaults";
