@@ -16,6 +16,7 @@ import { ShareModal } from "@/components/ShareModal";
 import { AddToBucketModal } from "@/components/AddToBucketModal";
 import { BatchPublishModal } from "@/components/BatchPublishModal";
 import { useNavigate } from "react-router-dom";
+import { S3Image } from "@/components/S3Image";
 
 const PAGE_SIZE = 48;
 
