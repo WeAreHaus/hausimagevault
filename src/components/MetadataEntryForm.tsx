@@ -11,6 +11,8 @@ export interface UploadedFile {
   id: string;
   name: string;
   previewUrl: string;
+  /** Original File object for S3 upload */
+  rawFile?: File;
   title: string;
   photographer: string;
   copyright: string;

@@ -51,11 +51,12 @@ export const imageStore = {
     return images;
   },
 
-  addImages(files: UploadedFile[]) {
+  addImages(files: UploadedFile[], s3Keys?: string[]) {
     const now = new Date().toISOString();
     const newItems: ImageItem[] = files.map((f, i) => ({
       id: `uploaded-${Date.now()}-${i}`,
       src: f.previewUrl,
+      s3Key: s3Keys?.[i],
       title: f.title || f.name,
       photographer: f.photographer || "Unknown",
       copyright: f.copyright || "",
