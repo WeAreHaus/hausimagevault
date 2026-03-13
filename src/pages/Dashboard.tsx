@@ -43,7 +43,7 @@ export default function Dashboard() {
           <CardContent className="space-y-3">
             {images.slice(0, 4).map((img) => (
               <div key={img.id} className="flex items-center gap-3">
-                <S3Image src={img.src} s3Key={img.s3Key} alt={img.altText} className="h-10 w-14 rounded object-cover" />
+                <S3Image src={img.src} s3Key={img.s3Key} size="thumb" alt={img.altText} className="h-10 w-14 rounded object-cover" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{img.title}</p>
                   <p className="text-xs text-muted-foreground">{img.photographer} · {img.tourDate}</p>

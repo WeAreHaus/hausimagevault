@@ -4,10 +4,12 @@ import { imageStore } from "@/stores/imageStore";
 import { getLogoById } from "@/stores/logoStore";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getCdnUrl } from "@/lib/cdnUrl";
 
 interface Asset {
   id: string;
   src: string;
+  s3Key?: string;
   title: string;
 }
 
@@ -16,10 +18,10 @@ function resolveAssets(ids: string[]): Asset[] {
   for (const id of ids) {
     if (id.startsWith("logo-")) {
       const logo = getLogoById(id);
-      if (logo) assets.push({ id: logo.id, src: logo.previewUrl, title: logo.name });
+      if (logo) assets.push({ id: logo.id, src: logo.previewUrl, s3Key: logo.s3Key, title: logo.name });
     } else {
       const img = imageStore.getImages().find((i) => i.id === id);
-      if (img) assets.push({ id: img.id, src: img.src, title: img.title });
+      if (img) assets.push({ id: img.id, src: img.src, s3Key: img.s3Key, title: img.title });
     }
   }
   return assets;
@@ -62,7 +64,7 @@ export default function PublicPagePreview() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {assets.map((asset) => (
               <div key={asset.id} className="group relative rounded-lg border overflow-hidden bg-muted">
-                <img src={asset.src} alt={asset.title} className="w-full aspect-square object-cover" />
+                <img src={asset.s3Key ? getCdnUrl(asset.s3Key, "medium") : asset.src} alt={asset.title} className="w-full aspect-square object-cover" loading="lazy" />
 
                 {/* Watermark overlay */}
                 {showWatermark && (

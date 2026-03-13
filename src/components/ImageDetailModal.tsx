@@ -76,7 +76,7 @@ export function ImageDetailModal({ image, onClose }: Props) {
             {/* Preview */}
             <div className="space-y-3">
               <div className="rounded-lg overflow-hidden border relative">
-                <S3Image src={image.src} s3Key={image.s3Key} alt={currentAlt} className="w-full object-contain max-h-[400px]" />
+                <S3Image src={image.src} s3Key={image.s3Key} size="large" alt={currentAlt} className="w-full object-contain max-h-[400px]" />
                 {isVideo && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                     <div className="h-16 w-16 rounded-full bg-background/90 flex items-center justify-center shadow-lg">
